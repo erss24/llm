@@ -14,7 +14,7 @@
         circle 
         @click="smoothScrollToBottom"
       >
-        <el-icon><ArrowDown /></el-icon>
+      <el-icon><Bottom /></el-icon>
       </el-button>
     </div>
     <InputBox @send-message="handleSendMessage" :loading="chatStore.loading" />
@@ -27,7 +27,7 @@ import { useChatStore } from '../stores/chat'
 import UserMessage from '../components/UserMessage.vue'
 import ModelMessage from '../components/ModelMessage.vue'
 import InputBox from '../components/InputBox.vue'
-import { ArrowDown } from '@element-plus/icons-vue'
+import { Bottom } from '@element-plus/icons-vue'
 
 export default {
   name: 'LLMChat',
@@ -35,7 +35,7 @@ export default {
     UserMessage,
     ModelMessage,
     InputBox,
-    ArrowDown
+    Bottom
   },
   setup() {
     const chatStore = useChatStore()
@@ -135,7 +135,7 @@ export default {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  background-color: #ffffff;
+  background-color: rgb(252, 252, 252);
 }
 
 .chat-history {
@@ -158,13 +158,21 @@ export default {
 
 /* 滚动到底部按钮样式 */
 .scroll-to-bottom-btn {
+  color: black;
+  background-color: #f4f4f4;
   position: fixed;
   bottom: 260px; /* 位于输入框上方 */
   left: 48%;
   z-index: 10;
-  width: 60px;
-  height: 60px;
-  font-size: 20px;
+  width: 55px;
+  height: 55px;
+  font-size: 35px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
+
+:deep(.el-button--primary) {
+  box-shadow: none;
+  border: none;
+}
+
 </style>
