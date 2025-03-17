@@ -6,10 +6,9 @@
         class="input-textarea"
         type="textarea"
         v-model="inputMessage"
-        @keydown.enter.prevent="handleSend"
+        @keydown.enter="handleKeyDown"
         :autosize="{ minRows: 2, maxRows: 6 }"
         ref="textareaRef"
-        
       />
       <div class="input-actions">
         <div class="left">
@@ -110,12 +109,25 @@ export default {
       isDeepThinking.value = !isDeepThinking.value;
       emit("deep-thinking-change", isDeepThinking.value); // 可选：通知父组件状态变化
     };
+    
+    // 处理键盘事件
+    const handleKeyDown = (e) => {
+      // 如果按下了shift键+enter，不阻止默认行为，允许换行
+      if (e.shiftKey) {
+        return;
+      }
+      
+      // 如果只按下enter键，阻止默认行为并发送消息
+      e.preventDefault();
+      handleSend();
+    };
 
     return {
       inputMessage,
       textareaRef,
       canSend,
       handleSend,
+      handleKeyDown,
       selectedModel,
       handleModelChange,
       isDeepThinking,
