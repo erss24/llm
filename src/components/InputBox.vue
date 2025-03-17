@@ -9,6 +9,7 @@
         @keydown.enter.prevent="handleSend"
         :autosize="{ minRows: 2, maxRows: 6 }"
         ref="textareaRef"
+        
       />
       <div class="input-actions">
         <div class="left">
@@ -187,6 +188,8 @@ export default {
 :deep(.el-textarea__inner) {
   box-shadow: none;
   resize: none;
+  color:#000;
+  padding: 5px 24px;
 }
 
 .send-actions {
