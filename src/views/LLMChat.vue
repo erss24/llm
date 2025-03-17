@@ -5,6 +5,17 @@
         <UserMessage v-if="message.role === 'user'" :content="message.content" />
         <ModelMessage v-else :content="message.content" :streaming="message.streaming" />
       </div>
+      
+      <!-- 添加滚动到底部的按钮 -->
+      <el-button 
+        v-show="showScrollButton" 
+        class="scroll-to-bottom-btn" 
+        type="primary" 
+        circle 
+        @click="smoothScrollToBottom"
+      >
+        <el-icon><ArrowDown /></el-icon>
+      </el-button>
     </div>
     <InputBox @send-message="handleSendMessage" :loading="chatStore.loading" />
   </div>
@@ -16,26 +27,46 @@ import { useChatStore } from '../stores/chat'
 import UserMessage from '../components/UserMessage.vue'
 import ModelMessage from '../components/ModelMessage.vue'
 import InputBox from '../components/InputBox.vue'
+import { ArrowDown } from '@element-plus/icons-vue'
 
 export default {
   name: 'LLMChat',
   components: {
     UserMessage,
     ModelMessage,
-    InputBox
+    InputBox,
+    ArrowDown
   },
   setup() {
     const chatStore = useChatStore()
     const chatHistoryRef = ref(null)
     const userHasScrolled = ref(false)
+    const showScrollButton = ref(false)
     
     // 滚动到底部的函数
     const scrollToBottom = () => {
       setTimeout(() => {
         if (chatHistoryRef.value) {
           chatHistoryRef.value.scrollTop = chatHistoryRef.value.scrollHeight
+          showScrollButton.value = false
         }
       }, 100)
+    }
+    // 平滑滚动到底部的函数
+    const smoothScrollToBottom = () => {
+      if (chatHistoryRef.value) {
+        // 使用平滑滚动
+        chatHistoryRef.value.scrollTo({
+          top: chatHistoryRef.value.scrollHeight,
+          behavior: 'smooth'
+        })
+        
+        // 滚动完成后隐藏按钮
+        setTimeout(() => {
+          showScrollButton.value = false
+          userHasScrolled.value = false
+        }, 500) // 给滚动动画足够的时间
+      }
     }
     
     // 监听用户滚动事件
@@ -46,9 +77,11 @@ export default {
       // 如果用户向上滚动超过100px，标记为已滚动
       if (scrollHeight - scrollTop - clientHeight > 100) {
         userHasScrolled.value = true
+        showScrollButton.value = true
       } else {
         // 如果滚动到接近底部，重置标记
         userHasScrolled.value = false
+        showScrollButton.value = false
       }
     }
     
@@ -85,7 +118,10 @@ export default {
     return {
       chatStore,
       chatHistoryRef,
-      handleSendMessage
+      handleSendMessage,
+      scrollToBottom,
+      smoothScrollToBottom,
+      showScrollButton
     }
   }
 }
@@ -113,10 +149,22 @@ export default {
   margin-top: 40px;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  position: relative; /* 添加相对定位，作为滚动按钮的参考 */
 }
 
 .chat-history::-webkit-scrollbar {
   display: none;
 }
 
+/* 滚动到底部按钮样式 */
+.scroll-to-bottom-btn {
+  position: fixed;
+  bottom: 260px; /* 位于输入框上方 */
+  left: 48%;
+  z-index: 10;
+  width: 60px;
+  height: 60px;
+  font-size: 20px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
 </style>
