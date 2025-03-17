@@ -1,12 +1,12 @@
 <template>
   <div class="model-message">
     <div class="message-content">
-      <div class="message-text">
+      <div class="message-text" >
         {{ content }}
         <span v-if="streaming" class="cursor"></span>
       </div>
     </div>
-    <div class="message-actions">
+    <div class="message-actions" v-if="!streaming">
       <button class="action-btn"><el-icon><CopyDocument /></el-icon></button>
       <button class="action-btn"><el-icon><EditPen /></el-icon></button>
     </div>
@@ -29,7 +29,11 @@ export default {
     streaming: {
       type: Boolean,
       default: false
-    }
+    },
+    // loading: {
+    //   type: Boolean,
+    //   default: false,
+    // },
   }
 }
 </script>
@@ -43,7 +47,7 @@ export default {
   max-width: calc(100% - 60px);
   margin: 10px 20px;
   align-self: flex-start;
-  background-color: pink;
+  // background-color: pink;
 }
 
 .message-content {

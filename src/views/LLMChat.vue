@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useChatStore } from '../stores/chat'
 import UserMessage from '../components/UserMessage.vue'
 import ModelMessage from '../components/ModelMessage.vue'
@@ -27,26 +27,58 @@ export default {
   setup() {
     const chatStore = useChatStore()
     const chatHistoryRef = ref(null)
+    const userHasScrolled = ref(false)
     
-    // 监听消息变化，自动滚动到底部
+    // 滚动到底部的函数
+    const scrollToBottom = () => {
+      setTimeout(() => {
+        if (chatHistoryRef.value) {
+          chatHistoryRef.value.scrollTop = chatHistoryRef.value.scrollHeight
+        }
+      }, 100)
+    }
+    
+    // 监听用户滚动事件
+    const handleScroll = () => {
+      if (!chatHistoryRef.value) return
+      
+      const { scrollTop, scrollHeight, clientHeight } = chatHistoryRef.value
+      // 如果用户向上滚动超过100px，标记为已滚动
+      if (scrollHeight - scrollTop - clientHeight > 100) {
+        userHasScrolled.value = true
+      } else {
+        // 如果滚动到接近底部，重置标记
+        userHasScrolled.value = false
+      }
+    }
+    
+    // 监听消息变化，自动滚动到底部（除非用户已滚动）
     watch(
-      // 同时监听消息数组长度和最后一条消息的内容
       [
         () => chatStore.messages.length,
         () => chatStore.messages.length > 0 ? chatStore.messages[chatStore.messages.length - 1].content : ''
       ],
       () => {
-        setTimeout(() => {
-          if (chatHistoryRef.value) {
-            chatHistoryRef.value.scrollTop = chatHistoryRef.value.scrollHeight
-          }
-        }, 100) // 减少延迟时间以使滚动更加及时
+        if (!userHasScrolled.value) {
+          scrollToBottom()
+        }
       }
     )
     
+    // 组件挂载时滚动到底部
+    onMounted(() => {
+      scrollToBottom()
+      
+      // 添加滚动事件监听
+      if (chatHistoryRef.value) {
+        chatHistoryRef.value.addEventListener('scroll', handleScroll)
+      }
+    })
+    
     // 处理发送消息
     const handleSendMessage = async (message) => {
-      // 使用新的sendMessageToLLM方法
+      // 发送消息时重置用户滚动状态，确保新消息可见
+      userHasScrolled.value = false
       await chatStore.sendMessageToLLM(message)
     }
     

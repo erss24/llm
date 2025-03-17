@@ -184,6 +184,11 @@ export default {
   flex-direction: column;
 }
 
+.send-btn:hover {
+  background-color: #010e01;
+  opacity: 0.5;
+}
+
 :deep(.el-loading-spinner) {
   display: flex;
   align-items: center;
