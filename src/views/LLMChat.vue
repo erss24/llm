@@ -14,8 +14,14 @@
       :modal="false"
       :with-header="true"
       :show-close="false"
+      :append-to-body="false"
+      :lock-scroll="false"
+      :overlay="false"
+      style="position: relative;"
       :close-on-click-modal="false"
+      :close-on-press-escape="false"
       custom-class="chat-history-drawer"
+      :z-index="1"
     >
       <div class="drawer-content">
         <!-- 抽屉内容将在这里添加 -->
@@ -86,8 +92,9 @@ export default {
       position: 'fixed',
       bottom: '0',
       left: '0',
-      width: '1200px',
-      maxWidth: '100%'
+      zIndex: '100',
+      // width: '1200px',
+      maxWidth: '1200px',
     });
     const drawerWidth = ref(500); // 存储抽屉宽度
 
@@ -109,8 +116,12 @@ export default {
     // 滚动到底部的函数
     const scrollToBottom = () => {
       setTimeout(() => {
+        console.log(chatHistoryRef.value.scrollTop);
+        
         if (chatHistoryRef.value) {
           chatHistoryRef.value.scrollTop = chatHistoryRef.value.scrollHeight;
+          console.log(chatHistoryRef.value.scrollHeight, chatHistoryRef.value.scrollTop);
+
           showScrollButton.value = false;
         }
       }, 100);
@@ -219,7 +230,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  width: 100%;
+  /* width: 100%; */
   max-width: 1200px;
   margin: 0 auto;
   background-color: rgb(252, 252, 252);
@@ -242,13 +253,6 @@ export default {
   transform: v-bind('drawerVisible ? "translateX(0)" : "translateX(0)"');
 }
 
-/* 自定义抽屉样式 */
-:deep(.chat-history-drawer) {
-  background-color: #fff;
-  box-shadow: 0 8px 10px -5px rgba(0, 0, 0, 0.1),
-    0 16px 24px 2px rgba(0, 0, 0, 0.05), 0 6px 30px 5px rgba(0, 0, 0, 0.01);
-}
-
 :deep(.el-drawer__header) {
   margin-bottom: 20px;
   padding: 20px 60px 20px 20px; /* 为按钮留出空间 */
@@ -264,6 +268,7 @@ export default {
 }
 
 .chat-user {
+  z-index: 100;
   width: 100%;
   position: relative;
 }
@@ -287,6 +292,8 @@ export default {
   scrollbar-width: none;
   -ms-overflow-style: none;
   position: relative; /* 添加相对定位，作为滚动按钮的参考 */
+  height: calc(100vh - 320px); /* 确保有固定高度 */
+  
 }
 
 .chat-history::-webkit-scrollbar {
@@ -300,7 +307,7 @@ export default {
   position: fixed;
   bottom: 260px; /* 位于输入框上方 */
   left: 48%;
-  z-index: 10;
+  z-index: 3001;
   width: 55px;
   height: 55px;
   font-size: 35px;
@@ -342,4 +349,9 @@ export default {
   transition: left 0.3s ease;
   left: v-bind('drawerVisible ? "310px" : "20px"');
 }
+
+:deep(.el-popup-parent--hidden) {
+  overflow: none;
+}
+
 </style>
