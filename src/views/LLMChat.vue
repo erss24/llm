@@ -41,6 +41,7 @@
             :streaming="message.streaming"
           />
         </div>
+          
 
         <!-- 添加滚动到底部的按钮 -->
         <el-button
@@ -53,19 +54,22 @@
           <el-icon><Bottom /></el-icon>
         </el-button>
       </div>
-      <div class="input-box-container">
+      
         <InputBox
           @send-message="handleSendMessage"
           :loading="chatStore.loading"
           :style="inputBoxStyle"
+          ref="inputBoxRef"
         />
-      </div>
     </div>
+    <div class="input-box-container">
+            <div class="no-box" :style="{ height: inputBoxHeight + 'px' }"></div>
+          </div>
   </div>
 </template>
 
 <script>
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, onUnmounted } from "vue";
 import { useChatStore } from "../stores/chat";
 import UserMessage from "../components/UserMessage.vue";
 import ModelMessage from "../components/ModelMessage.vue";
@@ -97,6 +101,8 @@ export default {
       maxWidth: '1200px',
     });
     const drawerWidth = ref(500); // 存储抽屉宽度
+    const inputBoxRef = ref(null);
+    const inputBoxHeight = ref(280); // 默认高度
 
     // 更新输入框位置
     const updateInputBoxPosition = () => {
@@ -109,6 +115,21 @@ export default {
         // console.log(inputBoxStyle.value.left);
 
       }
+    };
+
+    // 监听 InputBox 高度变化
+    const observeInputBoxHeight = () => {
+      if (!inputBoxRef.value) return;
+      
+      const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+          inputBoxHeight.value = entry.contentRect.height;
+        }
+      });
+      
+      resizeObserver.observe(inputBoxRef.value.$el);
+      
+      return resizeObserver;
     };
 
 
@@ -187,6 +208,16 @@ export default {
       // 监听窗口大小变化，更新输入框位置
       // updateInputBoxPosition();
       // window.addEventListener("resize", updateInputBoxPosition);
+
+      // 初始化 InputBox 高度监听
+      const observer = observeInputBoxHeight();
+      
+      // 清理函数
+      onUnmounted(() => {
+        if (observer) {
+          observer.disconnect();
+        }
+      });
     });
 
     // 处理发送消息
@@ -219,18 +250,18 @@ export default {
       chatUserRef,
       inputBoxStyle,
       toggleDrawer,
+      inputBoxRef,
+      inputBoxHeight,
       drawerWidth
     };
   },
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .chat-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  /* width: 100%; */
   max-width: 1200px;
   margin: 0 auto;
   background-color: rgb(252, 252, 252);
@@ -275,16 +306,20 @@ export default {
 
 /* 输入框容器样式 */
 .input-box-container {
-  z-index: 100;
-  background-color: rgb(252, 252, 252);
+  width: 100%;
   transition: left 0.3s ease;
+  .no-box {
+    width: 100%;
+  height: 280px;
+  box-sizing: border-box;
+  background-color: pink;
+  }
 }
 
 .chat-history {
   flex: 1;
-  overflow-y: auto;
+  min-height: calc(100vh - 320px);
   padding: 25px;
-  padding-bottom: 280px;
   display: flex;
   flex-direction: column;
   gap: 25px;
@@ -292,8 +327,7 @@ export default {
   scrollbar-width: none;
   -ms-overflow-style: none;
   position: relative; /* 添加相对定位，作为滚动按钮的参考 */
-  height: calc(100vh - 320px); /* 确保有固定高度 */
-  
+  background-color: yellow;
 }
 
 .chat-history::-webkit-scrollbar {
