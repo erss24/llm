@@ -100,6 +100,12 @@ export default {
       // width: '1200px',
       maxWidth: '1200px',
     });
+    const chatContainerStyle = ref({
+      left: '0',
+      zIndex: '100',
+      maxWidth: '1200px',
+      margin: '0 auto',
+    });
     const drawerWidth = ref(500); // 存储抽屉宽度
     const inputBoxRef = ref(null);
     const inputBoxHeight = ref(280); // 默认高度
@@ -111,6 +117,7 @@ export default {
         // console.log(drawerWidth.value, inputBoxStyle.value.left);
         
         inputBoxStyle.value.left = drawerVisible.value?drawerWidth.value+'px':'0';
+        chatContainerStyle.value.left = drawerVisible.value?drawerWidth.value+'px':'0';
         // inputBoxStyle.value.width = `${rect.width}px`;
         // console.log(inputBoxStyle.value.left);
 
@@ -137,12 +144,8 @@ export default {
     // 滚动到底部的函数
     const scrollToBottom = () => {
       setTimeout(() => {
-        console.log(chatHistoryRef.value.scrollTop);
-        
         if (chatHistoryRef.value) {
           chatHistoryRef.value.scrollTop = chatHistoryRef.value.scrollHeight;
-          console.log(chatHistoryRef.value.scrollHeight, chatHistoryRef.value.scrollTop);
-
           showScrollButton.value = false;
         }
       }, 100);
@@ -166,11 +169,16 @@ export default {
 
     // 监听用户滚动事件
     const handleScroll = () => {
+      console.log(chatHistoryRef.value);
+      
       if (!chatHistoryRef.value) return;
 
       const { scrollTop, scrollHeight, clientHeight } = chatHistoryRef.value;
+      console.log(scrollTop, scrollHeight, clientHeight);
+      
       // 如果用户向上滚动超过100px，标记为已滚动
       if (scrollHeight - scrollTop - clientHeight > 100) {
+        
         userHasScrolled.value = true;
         showScrollButton.value = true;
       } else {
@@ -199,7 +207,6 @@ export default {
     // 组件挂载时滚动到底部
     onMounted(() => {
       scrollToBottom();
-
       // 添加滚动事件监听
       if (chatHistoryRef.value) {
         chatHistoryRef.value.addEventListener("scroll", handleScroll);
@@ -249,6 +256,7 @@ export default {
       drawerVisible,
       chatUserRef,
       inputBoxStyle,
+      chatContainerStyle,
       toggleDrawer,
       inputBoxRef,
       inputBoxHeight,
@@ -265,6 +273,9 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   background-color: rgb(252, 252, 252);
+  /* 添加内容区域的过渡效果 */
+  transition: padding-left 0.3s ease;
+  padding-left: v-bind('drawerVisible ? drawerWidth+'px' : "0"');
 }
 
 /* 左上角菜单按钮样式 */
@@ -318,14 +329,14 @@ export default {
 
 .chat-history {
   flex: 1;
-  min-height: calc(100vh - 320px);
+  height: calc(100vh - 320px);
   padding: 25px;
   display: flex;
   flex-direction: column;
   gap: 25px;
   margin-top: 40px;
   scrollbar-width: none;
-  -ms-overflow-style: none;
+  overflow-y: auto;
   position: relative; /* 添加相对定位，作为滚动按钮的参考 */
   background-color: yellow;
 }
@@ -370,12 +381,6 @@ export default {
 
 :deep(.el-drawer__body) {
   padding: 0;
-}
-
-/* 添加内容区域的过渡效果 */
-.chat-container {
-  transition: padding-left 0.3s ease;
-  padding-left: v-bind('drawerVisible ? drawerWidth+'px' : "0"');
 }
 
 /* 调整菜单按钮位置，使其在抽屉打开时也可见 */
