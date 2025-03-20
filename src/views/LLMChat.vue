@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-container">
+  <div class="chat-container" :style="chatContainerStyle">
     <!-- 添加左上角菜单按钮 -->
     <el-button class="menu-button" type="primary" circle @click="toggleDrawer">
       <el-icon><Menu /></el-icon>
@@ -101,10 +101,7 @@ export default {
       maxWidth: '1200px',
     });
     const chatContainerStyle = ref({
-      left: '0',
-      zIndex: '100',
-      maxWidth: '1200px',
-      margin: '0 auto',
+      marginLeft: '0',
     });
     const drawerWidth = ref(500); // 存储抽屉宽度
     const inputBoxRef = ref(null);
@@ -113,27 +110,22 @@ export default {
     // 更新输入框位置
     const updateInputBoxPosition = () => {
       if (chatUserRef.value) {
-        // const rect = chatUserRef.value.getBoundingClientRect();
-        // console.log(drawerWidth.value, inputBoxStyle.value.left);
-        
         inputBoxStyle.value.left = drawerVisible.value?drawerWidth.value+'px':'0';
-        chatContainerStyle.value.left = drawerVisible.value?drawerWidth.value+'px':'0';
-        // inputBoxStyle.value.width = `${rect.width}px`;
-        // console.log(inputBoxStyle.value.left);
-
+        chatContainerStyle.value.marginLeft = drawerVisible.value?inputBoxStyle.value.left:'0';
       }
     };
 
     // 监听 InputBox 高度变化
     const observeInputBoxHeight = () => {
       if (!inputBoxRef.value) return;
+      console.log(inputBoxHeight.value);
       
       const resizeObserver = new ResizeObserver(entries => {
         for (let entry of entries) {
           inputBoxHeight.value = entry.contentRect.height;
         }
       });
-      
+      // smoothScrollToBottom();
       resizeObserver.observe(inputBoxRef.value.$el);
       
       return resizeObserver;
@@ -169,16 +161,10 @@ export default {
 
     // 监听用户滚动事件
     const handleScroll = () => {
-      console.log(chatHistoryRef.value);
-      
       if (!chatHistoryRef.value) return;
-
       const { scrollTop, scrollHeight, clientHeight } = chatHistoryRef.value;
-      console.log(scrollTop, scrollHeight, clientHeight);
-      
       // 如果用户向上滚动超过100px，标记为已滚动
       if (scrollHeight - scrollTop - clientHeight > 100) {
-        
         userHasScrolled.value = true;
         showScrollButton.value = true;
       } else {
@@ -211,10 +197,6 @@ export default {
       if (chatHistoryRef.value) {
         chatHistoryRef.value.addEventListener("scroll", handleScroll);
       }
-
-      // 监听窗口大小变化，更新输入框位置
-      // updateInputBoxPosition();
-      // window.addEventListener("resize", updateInputBoxPosition);
 
       // 初始化 InputBox 高度监听
       const observer = observeInputBoxHeight();
@@ -270,12 +252,10 @@ export default {
 .chat-container {
   display: flex;
   flex-direction: column;
-  max-width: 1200px;
   margin: 0 auto;
   background-color: rgb(252, 252, 252);
   /* 添加内容区域的过渡效果 */
-  transition: padding-left 0.3s ease;
-  padding-left: v-bind('drawerVisible ? drawerWidth+'px' : "0"');
+  transition: all 0.3s ease;
 }
 
 /* 左上角菜单按钮样式 */
@@ -310,9 +290,10 @@ export default {
 }
 
 .chat-user {
+  max-width: 1200px;
   z-index: 100;
-  width: 100%;
   position: relative;
+  margin: 0 auto;
 }
 
 /* 输入框容器样式 */
