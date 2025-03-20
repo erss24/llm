@@ -10,8 +10,8 @@
       <el-tooltip content="复制" placement="top" :effect="'dark'" popper-class="custom-tooltip">
         <button class="action-btn" @click="copyContent"><el-icon><CopyDocument /></el-icon></button>
       </el-tooltip>
-      <el-tooltip content="重新生成" placement="top" :effect="'dark'" popper-class="custom-tooltip">
-        <button class="action-btn"><el-icon><RefreshLeft /></el-icon></button>
+      <el-tooltip content="重新生成" placement="top" :effect="'dark'" popper-class="custom-tooltip" v-if="isLastMessage">
+        <button class="action-btn" @click="regenerateContent"><el-icon><RefreshLeft /></el-icon></button>
       </el-tooltip>
     </div>
   </div>
@@ -37,6 +37,10 @@ export default {
       type: Boolean,
       default: false
     },
+    isLastMessage: {
+      type: Boolean,
+      default: false
+    }
     // loading: {
     //   type: Boolean,
     //   default: false,
@@ -62,6 +66,10 @@ export default {
             duration: 2000
           });
         });
+    },
+    regenerateContent() {
+      // 发射重新生成事件给父组件
+      this.$emit('regenerate');
     }
   }
 }

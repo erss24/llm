@@ -30,7 +30,7 @@
     </el-drawer>
     <div class="chat-user" ref="chatUserRef">
       <div class="chat-history" ref="chatHistoryRef">
-        <div v-for="message in chatStore.messages" :key="message.id">
+        <div v-for="(message, index) in chatStore.messages" :key="message.id">
           <UserMessage
             v-if="message.role === 'user'"
             :content="message.content"
@@ -40,6 +40,8 @@
             v-else
             :content="message.content"
             :streaming="message.streaming"
+            :is-last-message="chatStore.isLastModelMessage(index)"
+            @regenerate="handleRegenerateMessage"
           />
         </div>
           
@@ -234,6 +236,14 @@ export default {
       await chatStore.sendMessageToLLM(message);
     };
 
+    // 处理重新生成消息
+    const handleRegenerateMessage = async () => {
+      // 重置用户滚动状态，确保新消息可见
+      userHasScrolled.value = false;
+      // 调用store中的重新生成方法
+      await chatStore.regenerateLastMessage();
+    };
+
     // 处理抽屉开关
     const toggleDrawer = () => {
       drawerVisible.value = !drawerVisible.value;
@@ -262,6 +272,7 @@ export default {
       chatStore,
       chatHistoryRef,
       handleSendMessage,
+      handleRegenerateMessage,
       scrollToBottom,
       smoothScrollToBottom,
       showScrollButton,

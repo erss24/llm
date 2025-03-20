@@ -104,7 +104,63 @@ export const useChatStore = defineStore('chat', {
       } finally {
         this.setLoading(false)
       }
-    }
+    },
+    
+    /**
+     * 重新生成最后一条助手消息
+     * @returns {Promise<void>}
+     */
+    async regenerateLastMessage() {
+      // 查找最后一条助手消息的索引
+      let lastAssistantIndex = -1
+      for (let i = this.messages.length - 1; i >= 0; i--) {
+        if (this.messages[i].role === 'assistant') {
+          lastAssistantIndex = i
+          break
+        }
+      }
+      
+      // 查找最后一条用户消息的内容
+      let lastUserMessage = ''
+      let lastUserMessageIndex = -1
+      for (let i = lastAssistantIndex - 1; i >= 0; i--) {
+        if (this.messages[i].role === 'user') {
+          lastUserMessageIndex = i
+          lastUserMessage = this.messages[i].content
+          break
+        }
+      }
+      
+      // 如果找到了最后一条助手消息和用户消息
+      if (lastAssistantIndex !== -1 && lastUserMessage) {
+        // 删除最后一条助手消息
+        this.messages.splice(lastAssistantIndex, 1)
+        this.messages.splice(lastUserMessageIndex, 1)
+        // 重新发送用户的最后一条消息
+        await this.sendMessageToLLM(lastUserMessage)
+      }
+    },
+    
+    /**
+     * 判断指定索引的消息是否为最后一条助手消息
+     * @param {number} index - 要检查的消息索引
+     * @returns {boolean} 是否为最后一条助手消息
+     */
+    isLastModelMessage(index) {
+      // 如果索引无效，返回false
+      if (index < 0 || index >= this.messages.length) {
+        return false
+      }
+      
+      // 从当前索引向后查找，检查是否还有其他助手消息
+      for (let i = index + 1; i < this.messages.length; i++) {
+        if (this.messages[i].role === 'assistant') {
+          return false // 如果找到更靠后的助手消息，则当前消息不是最后一条
+        }
+      }
+      
+      return this.messages[index].role === 'assistant' // 确认当前消息是助手消息
+    },
   },
   
   // 添加持久化配置
