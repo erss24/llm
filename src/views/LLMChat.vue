@@ -137,7 +137,7 @@ export default {
     const scrollToBottom = () => {
       setTimeout(() => {
         if (chatHistoryRef.value) {
-          chatHistoryRef.value.scrollTop = chatHistoryRef.value.scrollHeight;
+          chatUserRef.value.scrollTop = chatUserRef.value.scrollHeight;
           showScrollButton.value = false;
         }
       }, 100);
@@ -146,8 +146,8 @@ export default {
     const smoothScrollToBottom = () => {
       if (chatHistoryRef.value) {
         // 使用平滑滚动
-        chatHistoryRef.value.scrollTo({
-          top: chatHistoryRef.value.scrollHeight,
+        chatUserRef.value.scrollTo({
+          top: chatUserRef.value.scrollHeight,
           behavior: "smooth",
         });
 
@@ -162,7 +162,7 @@ export default {
     // 监听用户滚动事件
     const handleScroll = () => {
       if (!chatHistoryRef.value) return;
-      const { scrollTop, scrollHeight, clientHeight } = chatHistoryRef.value;
+      const { scrollTop, scrollHeight, clientHeight } = chatUserRef.value;
       // 如果用户向上滚动超过100px，标记为已滚动
       if (scrollHeight - scrollTop - clientHeight > 100) {
         userHasScrolled.value = true;
@@ -195,7 +195,7 @@ export default {
       scrollToBottom();
       // 添加滚动事件监听
       if (chatHistoryRef.value) {
-        chatHistoryRef.value.addEventListener("scroll", handleScroll);
+        chatUserRef.value.addEventListener("scroll", handleScroll);
       }
 
       // 初始化 InputBox 高度监听
@@ -290,10 +290,10 @@ export default {
 }
 
 .chat-user {
-  max-width: 1200px;
+  width: 100%;
   z-index: 100;
   position: relative;
-  margin: 0 auto;
+  overflow: auto;
 }
 
 /* 输入框容器样式 */
@@ -309,17 +309,16 @@ export default {
 }
 
 .chat-history {
-  flex: 1;
   height: calc(100vh - 320px);
   padding: 25px;
   display: flex;
   flex-direction: column;
   gap: 25px;
-  margin-top: 40px;
   scrollbar-width: none;
-  overflow-y: auto;
   position: relative; /* 添加相对定位，作为滚动按钮的参考 */
   background-color: yellow;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .chat-history::-webkit-scrollbar {
