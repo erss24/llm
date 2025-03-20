@@ -4,25 +4,57 @@
       <div class="message-text">{{ content }}</div>
     </div>
     <div class="message-actions">
-      <button class="action-btn"><el-icon><CopyDocument /></el-icon></button>
-      <button class="action-btn"><el-icon><EditPen /></el-icon></button>
+      <el-tooltip content="复制" placement="top" :effect="'dark'" popper-class="custom-tooltip">
+        <button class="action-btn" @click="copyContent"><el-icon><CopyDocument /></el-icon></button>
+      </el-tooltip>
+      <el-tooltip content="编辑" placement="top" :effect="'dark'" popper-class="custom-tooltip">
+        <button class="action-btn" @click="editContent"><el-icon><EditPen /></el-icon></button>
+      </el-tooltip>
     </div>
   </div>
 </template>
 
 <script>
 import { CopyDocument, EditPen } from '@element-plus/icons-vue'
+import { ElTooltip, ElMessage } from 'element-plus'
 
 export default {
   name: 'UserMessage',
   components: {
     CopyDocument,
-    EditPen
+    EditPen,
+    ElTooltip
   },
   props: {
     content: {
       type: String,
       default: ''
+    }
+  },
+  methods: {
+    copyContent() {
+      // 复制内容到剪贴板
+      navigator.clipboard.writeText(this.content)
+        .then(() => {
+          // 复制成功后显示提示
+          ElMessage({
+            message: '复制成功',
+            type: 'success',
+            duration: 2000
+          });
+        })
+        .catch(err => {
+          console.error('复制失败:', err);
+          ElMessage({
+            message: '复制失败',
+            type: 'error',
+            duration: 2000
+          });
+        });
+    },
+    editContent() {
+      // 发射编辑事件，将内容传递给父组件
+      this.$emit('edit-message', this.content);
     }
   }
 }
@@ -71,5 +103,13 @@ export default {
   .user-message {
     max-width: 80%;
   }
+}
+</style>
+
+<style>
+/* 全局样式，不使用 scoped */
+.custom-tooltip {
+  font-size: 19px !important; /* 增大提示文字大小 */
+  padding: 8px 12px !important; /* 增加内边距使提示框更大 */
 }
 </style>

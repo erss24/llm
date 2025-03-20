@@ -134,7 +134,27 @@ export default {
       toggleDeepThinking,
     };
   },
-};
+  methods: {
+    setInputContent(content) {
+      // 根据你的输入框实现来设置内容
+      
+      this.inputMessage = content; // 假设你的输入内容存储在 inputContent 变量中
+    },
+    focus() {
+      // 聚焦输入框
+      this.$refs.textareaRef.focus();
+      
+      // 将光标定位到文本的最后面
+      const textarea = this.$refs.textareaRef.textarea;
+      if (textarea) {
+        const length = this.inputMessage.length;
+        setTimeout(() => {
+          textarea.setSelectionRange(length, length);
+        }, 0);
+      }
+    }
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -161,16 +181,10 @@ export default {
 }
 
 .input-textarea {
-  width: 100%;
-
   padding: 10px 0 15px;
-  border: none;
-  resize: none;
   font-family: inherit;
   font-size: 23px;
   line-height: 1.5;
-
-  box-shadow: none;
 }
 
 .input-box .el-textarea__inner {
@@ -264,7 +278,7 @@ export default {
   color: black;
   font-size: 20px;
   background-color: rgba(144, 147, 153, 0.3);
-  
+  --el-button-hover-border-color: #000;
 }
 
 :deep(.el-dropdown-menu--large .el-dropdown-menu__item) {
@@ -289,5 +303,24 @@ export default {
   border: 2px solid #000 !important;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
   background-color: rgba(144, 147, 153, 0.5) !important;
+}
+
+/* 全局修改文本域的滚动条样式 */
+.el-textarea__inner::-webkit-scrollbar {
+  width: 3px; /* 滚动条宽度 */
+}
+
+.el-textarea__inner::-webkit-scrollbar-track {
+  background: #f1f1f1; /* 滚动条轨道背景 */
+  border-radius: 4px; /* 圆角 */
+}
+
+.el-textarea__inner::-webkit-scrollbar-thumb {
+  background: #888; /* 滚动条滑块颜色 */
+  border-radius: 4px; /* 圆角 */
+}
+
+.el-textarea__inner::-webkit-scrollbar-thumb:hover {
+  background: #555; /* 滚动条滑块悬停颜色 */
 }
 </style>

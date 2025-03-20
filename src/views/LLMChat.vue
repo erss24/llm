@@ -34,6 +34,7 @@
           <UserMessage
             v-if="message.role === 'user'"
             :content="message.content"
+            @edit-message="handleEditMessage"
           />
           <ModelMessage
             v-else
@@ -245,6 +246,18 @@ export default {
     //   setTimeout(updateInputBoxPosition, 300);
     // });
 
+    // 处理编辑消息
+    const handleEditMessage = (content) => {
+      // 将内容设置到输入框
+      if (inputBoxRef.value) {
+        inputBoxRef.value.setInputContent(content);
+        // 聚焦输入框
+        setTimeout(() => {
+          inputBoxRef.value.focus();
+        }, 100);
+      }
+    };
+
     return {
       chatStore,
       chatHistoryRef,
@@ -259,6 +272,7 @@ export default {
       toggleDrawer,
       inputBoxRef,
       inputBoxHeight,
+      handleEditMessage,
       drawerWidth
     };
   },

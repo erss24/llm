@@ -7,19 +7,26 @@
       </div>
     </div>
     <div class="message-actions" v-if="!streaming">
-      <button class="action-btn"><el-icon><CopyDocument /></el-icon></button>
-      <button class="action-btn"><el-icon><EditPen /></el-icon></button>
+      <el-tooltip content="复制" placement="top" :effect="'dark'" popper-class="custom-tooltip">
+        <button class="action-btn" @click="copyContent"><el-icon><CopyDocument /></el-icon></button>
+      </el-tooltip>
+      <el-tooltip content="重新生成" placement="top" :effect="'dark'" popper-class="custom-tooltip">
+        <button class="action-btn"><el-icon><RefreshLeft /></el-icon></button>
+      </el-tooltip>
     </div>
   </div>
 </template>
 
 <script>
-import { CopyDocument, EditPen } from '@element-plus/icons-vue'
+import { CopyDocument, RefreshLeft } from '@element-plus/icons-vue'
+import { ElTooltip, ElMessage } from 'element-plus'
+
 export default {
   name: 'ModelMessage',
   components: {
     CopyDocument,
-    EditPen
+    RefreshLeft,
+    ElTooltip
   },
   props: {
     content: {
@@ -34,6 +41,28 @@ export default {
     //   type: Boolean,
     //   default: false,
     // },
+  },
+  methods: {
+    copyContent() {
+      // 复制内容到剪贴板
+      navigator.clipboard.writeText(this.content)
+        .then(() => {
+          // 复制成功后显示提示
+          ElMessage({
+            message: '复制成功',
+            type: 'success',
+            duration: 2000
+          });
+        })
+        .catch(err => {
+          console.error('复制失败:', err);
+          ElMessage({
+            message: '复制失败',
+            type: 'error',
+            duration: 2000
+          });
+        });
+    }
   }
 }
 </script>
@@ -86,7 +115,7 @@ export default {
 .message-actions {
   display: flex;
   gap: 5px;
-  align-self: flex-end;
+  margin-top: 24px;
 }
 
 .action-btn {
@@ -94,12 +123,20 @@ export default {
   border: none;
   cursor: pointer;
   font-size: 24px;
-  padding: 8px;
+  padding: 10px;
 }
 
 @media (max-width: 768px) {
   .model-message {
     max-width: 90%;
   }
+}
+</style>
+
+<style>
+/* 全局样式，不使用 scoped */
+.custom-tooltip {
+  font-size: 19px !important; /* 增大提示文字大小 */
+  padding: 8px 12px !important; /* 增加内边距使提示框更大 */
 }
 </style>
