@@ -55,7 +55,9 @@ export default {
           ElMessage({
             message: '复制成功',
             type: 'success',
-            duration: 2000
+            duration: 2000,
+            offset: 100, // 设置距离顶部的距离为100px
+            customClass: 'large-message' // 添加自定义类名
           });
         })
         .catch(err => {
@@ -63,7 +65,9 @@ export default {
           ElMessage({
             message: '复制失败',
             type: 'error',
-            duration: 2000
+            duration: 2000,
+            offset: 100, // 设置距离顶部的距离为100px
+            customClass: 'large-message' // 添加自定义类名
           });
         });
     },
@@ -146,5 +150,24 @@ export default {
 .custom-tooltip {
   font-size: 19px !important; /* 增大提示文字大小 */
   padding: 8px 12px !important; /* 增加内边距使提示框更大 */
+}
+
+/* 增大消息提示的样式 */
+.large-message {
+  min-width: 180px !important;
+  padding: 12px 20px !important;
+}
+
+/* 明确定位消息文本 */
+.large-message .el-message__content {
+  font-size: 24px !important;
+  /* font-weight: bold !important; */
+  line-height: 1.5 !important;
+}
+
+/* 调整消息图标大小 */
+.large-message .el-message__icon {
+  font-size: 30px !important;
+  margin-right: 8px !important;
 }
 </style>
