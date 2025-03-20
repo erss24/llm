@@ -63,7 +63,7 @@
         />
     </div>
     <div class="input-box-container">
-            <div class="no-box" :style="{ height: inputBoxHeight + 'px' }"></div>
+            <div class="no-box" :style="{ height: inputBoxHeight + 25 + 'px' }"></div>
           </div>
   </div>
 </template>
@@ -106,7 +106,6 @@ export default {
     const drawerWidth = ref(500); // 存储抽屉宽度
     const inputBoxRef = ref(null);
     const inputBoxHeight = ref(280); // 默认高度
-
     // 更新输入框位置
     const updateInputBoxPosition = () => {
       if (chatUserRef.value) {
@@ -118,11 +117,17 @@ export default {
     // 监听 InputBox 高度变化
     const observeInputBoxHeight = () => {
       if (!inputBoxRef.value) return;
-      console.log(inputBoxHeight.value);
-      
       const resizeObserver = new ResizeObserver(entries => {
+        // 检查是否在底部
+        const isAtBottom = isScrolledToBottom();
         for (let entry of entries) {
           inputBoxHeight.value = entry.contentRect.height;
+          console.log(inputBoxHeight.value);
+          
+        }
+        // 如果之前在底部，高度变化后保持在底部
+        if (isAtBottom) {
+          scrollToBottom();
         }
       });
       // smoothScrollToBottom();
@@ -131,6 +136,14 @@ export default {
       return resizeObserver;
     };
 
+    // 检查是否滚动到底部
+    const isScrolledToBottom = () => {
+      if (!chatUserRef.value) return true;
+      
+      const { scrollTop, scrollHeight, clientHeight } = chatUserRef.value;
+      // 如果距离底部小于20px，认为是在底部
+      return scrollHeight - scrollTop - clientHeight < 20;
+    };
 
 
     // 滚动到底部的函数
@@ -192,6 +205,10 @@ export default {
 
     // 组件挂载时滚动到底部
     onMounted(() => {
+      // 设置 html 样式
+      document.documentElement.style.height = '100vh';
+      document.documentElement.style.overflow = 'hidden';
+
       scrollToBottom();
       // 添加滚动事件监听
       if (chatHistoryRef.value) {
@@ -249,7 +266,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
+
 .chat-container {
+  height: 100vh;
   display: flex;
   flex-direction: column;
   margin: 0 auto;
@@ -299,24 +319,25 @@ export default {
 /* 输入框容器样式 */
 .input-box-container {
   width: 100%;
+  flex-grow: 1;
   transition: left 0.3s ease;
   .no-box {
     width: 100%;
-  height: 280px;
   box-sizing: border-box;
-  background-color: pink;
+  // opacity: 0;
+  // background-color: pink;
   }
 }
 
 .chat-history {
-  height: calc(100vh - 320px);
+  height: calc(100vh - 277.5px);
+  flex-shrink: 1;
   padding: 25px;
   display: flex;
   flex-direction: column;
   gap: 25px;
   scrollbar-width: none;
   position: relative; /* 添加相对定位，作为滚动按钮的参考 */
-  background-color: yellow;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -330,7 +351,7 @@ export default {
   color: black;
   background-color: #f4f4f4;
   position: fixed;
-  bottom: 260px; /* 位于输入框上方 */
+  bottom: v-bind('inputBoxHeight + 60 + "px"'); /* 动态调整位置，始终位于输入框上方 */
   left: 48%;
   z-index: 3001;
   width: 55px;
