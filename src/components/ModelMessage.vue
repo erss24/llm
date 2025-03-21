@@ -67,12 +67,28 @@ export default {
   },
   mounted() {
     this.$nextTick(() => {
-      document.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightBlock(block);
-      });
+      this.applyHighlight();
     });
   },
+  updated() {
+    // 当内容更新且不再流式传输时，应用代码高亮
+    if (!this.streaming) {
+      this.$nextTick(() => {
+        this.applyHighlight();
+      });
+    }
+  },
   methods: {
+    applyHighlight() {
+      // 查找所有代码块并应用高亮
+      document.querySelectorAll('.message-text pre code').forEach((block) => {
+        if (!block.classList.contains('hljs-highlighted')) {
+          hljs.highlightBlock(block);
+          // 添加标记，避免重复高亮
+          block.classList.add('hljs-highlighted');
+        }
+      });
+    },
     copyContent() {
       navigator.clipboard.writeText(this.content)
         .then(() => {
