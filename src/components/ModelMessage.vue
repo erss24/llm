@@ -17,9 +17,27 @@
 </template>
 
 <script>
-import { CopyDocument, RefreshLeft } from '@element-plus/icons-vue'
-import { ElTooltip, ElMessage } from 'element-plus'
-import { marked } from 'marked'
+import { CopyDocument, RefreshLeft } from '@element-plus/icons-vue';
+import { ElTooltip, ElMessage } from 'element-plus';
+import { marked } from 'marked';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/github.css';
+
+// 配置marked使用highlight.js
+marked.setOptions({
+  highlight: function(code, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return hljs.highlight(code, { language: lang }).value;
+      } catch (err) {
+        console.error("Highlight.js error:", err);
+      }
+    }
+    return hljs.highlightAuto(code).value;
+  },
+  breaks: true,
+  langPrefix: 'language-'
+});
 
 export default {
   name: 'ModelMessage',
@@ -44,22 +62,26 @@ export default {
   },
   computed: {
     renderedContent() {
-      // 使用marked将Markdown转换为HTML
-      return this.content ? marked(this.content) : ''
+      return this.content ? marked(this.content) : '';
     }
+  },
+  mounted() {
+    this.$nextTick(() => {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+      });
+    });
   },
   methods: {
     copyContent() {
-      // 复制内容到剪贴板
       navigator.clipboard.writeText(this.content)
         .then(() => {
-          // 复制成功后显示提示
           ElMessage({
             message: '复制成功',
             type: 'success',
             duration: 2000,
-            offset: 100, // 设置距离顶部的距离为100px
-            customClass: 'large-message' // 添加自定义类名
+            offset: 100,
+            customClass: 'large-message'
           });
         })
         .catch(err => {
@@ -68,17 +90,16 @@ export default {
             message: '复制失败',
             type: 'error',
             duration: 2000,
-            offset: 100, // 设置距离顶部的距离为100px
-            customClass: 'large-message' // 添加自定义类名
+            offset: 100,
+            customClass: 'large-message'
           });
         });
     },
     regenerateContent() {
-      // 发射重新生成事件给父组件
       this.$emit('regenerate');
     }
   }
-}
+};
 </script>
 
 <style scoped lang="scss">
@@ -284,5 +305,22 @@ export default {
   margin: 24px 0;
   background-color: #e1e4e8;
   border: 0;
+}
+
+/* 确保highlight.js样式能正确应用 */
+.message-text .hljs {
+  display: block !important;
+  overflow-x: auto !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: #24292e !important;
+}
+
+/* 强制应用highlight.js的语法高亮样式 */
+.message-text .hljs-keyword,
+.message-text .hljs-selector-tag,
+.message-text .hljs-subst {
+  color: #d73a49 !important;
+  font-weight: bold !important;
 }
 </style>
