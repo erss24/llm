@@ -79,14 +79,14 @@ export default {
 
 .message-content {
   /* margin-bottom: 15px; */
-  font-size: 23px;
+  font-size: 25px;
   line-height: 1.8;
   .message-text {
     margin-top: 23px;
   white-space: pre-wrap;
   word-break: break-word;
   margin-bottom: 0;
-}
+  }
 }
 
 .message-actions {

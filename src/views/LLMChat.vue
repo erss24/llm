@@ -125,8 +125,7 @@ export default {
         const isAtBottom = isScrolledToBottom();
         for (let entry of entries) {
           inputBoxHeight.value = entry.contentRect.height;
-          console.log(inputBoxHeight.value);
-          
+          // console.log(inputBoxHeight.value);
         }
         // 如果之前在底部，高度变化后保持在底部
         if (isAtBottom) {

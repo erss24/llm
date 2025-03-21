@@ -1,10 +1,9 @@
 <template>
   <div class="model-message">
     <div class="message-content">
-      <div class="message-text" >
-        {{ content }}
-        <span v-if="streaming" class="cursor"></span>
+      <div class="message-text" v-html="renderedContent">
       </div>
+      <span v-if="streaming" class="cursor"></span>
     </div>
     <div class="message-actions" v-if="!streaming">
       <el-tooltip content="复制" placement="top" :effect="'dark'" popper-class="custom-tooltip">
@@ -20,6 +19,7 @@
 <script>
 import { CopyDocument, RefreshLeft } from '@element-plus/icons-vue'
 import { ElTooltip, ElMessage } from 'element-plus'
+import { marked } from 'marked'
 
 export default {
   name: 'ModelMessage',
@@ -41,10 +41,12 @@ export default {
       type: Boolean,
       default: false
     }
-    // loading: {
-    //   type: Boolean,
-    //   default: false,
-    // },
+  },
+  computed: {
+    renderedContent() {
+      // 使用marked将Markdown转换为HTML
+      return this.content ? marked(this.content) : ''
+    }
   },
   methods: {
     copyContent() {
@@ -93,13 +95,13 @@ export default {
 
 .message-content {
   /* margin-bottom: 15px; */
-  font-size: 23px;
-  line-height: 1.8;
+  font-size: 25px;
+  line-height: 2.2;
   .message-text {
     margin-top: 23px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin-bottom: 0;
+    // white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 0;
   }
 }
 
@@ -169,5 +171,118 @@ export default {
 .large-message .el-message__icon {
   font-size: 30px !important;
   margin-right: 8px !important;
+}
+
+/* Markdown样式 */
+.message-text {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.message-text h1 {
+  font-size: 2em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  border-bottom: 1px solid #eaecef;
+  padding-bottom: 0.3em;
+}
+
+.message-text h2 {
+  font-size: 1.55em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  border-bottom: 1px solid #eaecef;
+  padding-bottom: 0.3em;
+}
+
+.message-text h3 {
+  font-size: 1.45em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.message-text h4 {
+  font-size: 1.3em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.message-text p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.message-text pre {
+  background-color: #f6f8fa;
+  border-radius: 6px;
+  padding: 16px;
+  overflow: auto;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  /* font-size: 85%; */
+  line-height: 1.45;
+}
+
+.message-text code {
+  background-color: rgba(27, 31, 35, 0.05);
+  border-radius: 3px;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  /* font-size: 85%; */
+  margin: 0;
+  padding: 0.2em 0.4em;
+}
+
+.message-text pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.message-text blockquote {
+  border-left: 0.25em solid #dfe2e5;
+  color: #6a737d;
+  padding: 0 1em;
+  margin: 0 0 16px 0;
+}
+
+.message-text ul, .message-text ol {
+  padding-left: 2em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.message-text table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  overflow: auto;
+  width: 100%;
+}
+
+.message-text table th, .message-text table td {
+  border: 1px solid #dfe2e5;
+  padding: 6px 13px;
+}
+
+.message-text table tr {
+  background-color: #fff;
+  border-top: 1px solid #c6cbd1;
+}
+
+.message-text table tr:nth-child(2n) {
+  background-color: #f6f8fa;
+}
+
+.message-text img {
+  max-width: 100%;
+  box-sizing: content-box;
+}
+
+.message-text hr {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: #e1e4e8;
+  border: 0;
 }
 </style>
