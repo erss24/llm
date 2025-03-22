@@ -19,9 +19,9 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item 
-                  command="qwq-32b" 
-                  :class="{ 'active-model': selectedModel === 'qwq-32b' }" 
-                  style="font-size: 20px; line-height: 28px;">qwq-32b</el-dropdown-item>
+                  command="qwq-plus" 
+                  :class="{ 'active-model': selectedModel === 'qwq-plus' }" 
+                  style="font-size: 20px; line-height: 28px;">qwq-plus</el-dropdown-item>
                 <el-dropdown-item 
                   command="deepseek-r1" 
                   :class="{ 'active-model': selectedModel === 'deepseek-r1' }" 
@@ -85,7 +85,7 @@ export default {
   setup(props, { emit }) {
     const inputMessage = ref("");
     const textareaRef = ref(null);
-    const selectedModel = ref("qwq-32b"); // 默认选中的模型
+    const selectedModel = ref("qwq-plus"); // 默认选中的模型
     const isDeepThinking = ref(false); // 添加深度思考状态
 
     const canSend = computed(() => inputMessage.value.trim().length > 0);

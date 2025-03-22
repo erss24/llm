@@ -22,6 +22,62 @@ import { ElTooltip, ElMessage } from 'element-plus';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css';
+import 'highlight.js/lib/languages/xml';
+import 'highlight.js/lib/languages/javascript';
+import 'highlight.js/lib/languages/css';
+import 'highlight.js/lib/languages/typescript';
+
+// 注册Vue语言支持（通过组合HTML、JS和CSS）
+hljs.registerLanguage('vue', function(hljs) {
+  return {
+    subLanguage: ['xml', 'javascript', 'css', 'typescript'],
+    contains: [
+      hljs.COMMENT(
+        '/\\*',
+        '\\*/',
+        {
+          relevance: 0,
+          contains: [
+            {
+              className: 'doctag',
+              begin: '@[A-Za-z]+',
+              contains: [
+                {
+                  className: 'type',
+                  begin: '\\{',
+                  end: '\\}',
+                  relevance: 0
+                },
+                {
+                  className: 'variable',
+                  begin: '[A-Za-z$_][0-9A-Za-z$_]*(?=\\s*(-)|$)',
+                  relevance: 0
+                },
+                {
+                  begin: /[\[\]]/, end: /[\[\]]/, 
+                  relevance: 0,
+                  contains: [
+                    {
+                      className: 'type',
+                      begin: '\\{',
+                      end: '\\}',
+                      relevance: 0
+                    },
+                    {
+                      className: 'variable',
+                      begin: '[A-Za-z$_][0-9A-Za-z$_]*(?=\\s*(-)|$)',
+                      relevance: 0
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      )
+    ]
+  };
+});
 
 // 配置marked使用highlight.js
 marked.setOptions({
@@ -62,7 +118,7 @@ export default {
   },
   computed: {
     renderedContent() {
-      if (!this.content || this.content.trim() === '') {
+      if ((!this.content || this.content.trim() === '') && !this.streaming) {
         return '<div class="error-message">数据错误，请重新生成</div>';
       }
       return marked(this.content);
@@ -86,7 +142,7 @@ export default {
       // 查找所有代码块并应用高亮
       document.querySelectorAll('.message-text pre code').forEach((block) => {
         if (!block.classList.contains('hljs-highlighted')) {
-          hljs.highlightBlock(block);
+          hljs.highlightElement(block);
           // 添加标记，避免重复高亮
           block.classList.add('hljs-highlighted');
         }

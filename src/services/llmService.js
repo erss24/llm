@@ -22,7 +22,7 @@ export async function createChatCompletion(messages, onUpdate) {
         'Authorization': `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
-        model: 'qwq-32b',
+        model: 'qwq-plus',
         messages: messages.map(msg => ({
           role: msg.role,
           content: msg.content
@@ -90,9 +90,9 @@ export function checkIncompleteStreaming(completeCallback) {
   const lastStreamingMessageIndex = parseInt(localStorage.getItem('lastStreamingMessageIndex'));
   
   // 如果有未完成的流式消息，则标记为已完成
-  console.log(lastStreamingMessageIndex, isStreaming, JSON.parse(localStorage.getItem('chat')));
+  // console.log(lastStreamingMessageIndex, isStreaming, JSON.parse(localStorage.getItem('chat')));
   if (isStreaming && lastStreamingMessageIndex >= 0) {
-    console.log('检测到未完成的流式消息，正在标记为已完成...');
+    // console.log('检测到未完成的流式消息，正在标记为已完成...');
     completeCallback(lastStreamingMessageIndex);
   }
 }
