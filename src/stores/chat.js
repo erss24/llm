@@ -3,8 +3,10 @@ import { createChatCompletion } from '../services/llmService'
 
 export const useChatStore = defineStore('chat', {
   state: () => ({
-    messages: [],      // 存储聊天消息的数组
-    loading: false     // 表示是否正在加载的状态标志
+    messages: JSON.parse(localStorage.getItem('chatMessages')) || [],
+    streaming: localStorage.getItem('isStreaming') === 'true' || false,
+    loading: false,     // 表示是否正在加载的状态标志
+    lastStreamingMessageIndex: parseInt(localStorage.getItem('lastStreamingMessageIndex')) || -1 // 最后一条流式消息的索引
   }),
   
   actions: {
@@ -33,7 +35,16 @@ export const useChatStore = defineStore('chat', {
         timestamp: new Date().toISOString(), // 消息时间戳
         streaming: true                    // 标记消息是否正在流式传输
       })
-      return this.messages.length - 1 // 返回新添加消息的索引
+      const messageIndex = this.messages.length - 1
+      // 保存最后一条流式消息的索引
+      this.lastStreamingMessageIndex = messageIndex
+      localStorage.setItem('lastStreamingMessageIndex', messageIndex.toString())
+      // 更新全局streaming状态
+      this.streaming = true
+      localStorage.setItem('isStreaming', 'true')
+      // 保存消息到localStorage
+      localStorage.setItem('chatMessages', JSON.stringify(this.messages))
+      return messageIndex // 返回新添加消息的索引
     },
     
     /**
@@ -45,6 +56,8 @@ export const useChatStore = defineStore('chat', {
       // 检查索引是否在有效范围内
       if (index >= 0 && index < this.messages.length) {
         this.messages[index].content = content // 更新消息内容
+        // 每次更新时保存到localStorage
+        localStorage.setItem('chatMessages', JSON.stringify(this.messages))
       }
     },
     
@@ -56,6 +69,13 @@ export const useChatStore = defineStore('chat', {
       // 检查索引是否在有效范围内
       if (index >= 0 && index < this.messages.length) {
         this.messages[index].streaming = false // 将 streaming 标志设为 false
+        // 重置全局streaming状态和最后流式消息索引
+        this.streaming = false
+        this.lastStreamingMessageIndex = -1
+        localStorage.setItem('isStreaming', 'false')
+        localStorage.setItem('lastStreamingMessageIndex', '-1')
+        // 保存更新后的消息到localStorage
+        localStorage.setItem('chatMessages', JSON.stringify(this.messages))
       }
     },
     
@@ -170,6 +190,6 @@ export const useChatStore = defineStore('chat', {
     // 使用localStorage存储
     storage: localStorage,
     // 指定需要持久化的状态
-    paths: ['messages']
+    paths: ['messages', 'streaming', 'lastStreamingMessageIndex']
   }
 })

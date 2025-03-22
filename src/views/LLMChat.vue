@@ -78,6 +78,7 @@ import UserMessage from "../components/UserMessage.vue";
 import ModelMessage from "../components/ModelMessage.vue";
 import InputBox from "../components/InputBox.vue";
 import { Bottom, Menu } from "@element-plus/icons-vue";
+import { checkIncompleteStreaming } from "../services/llmService";
 
 export default {
   name: "LLMChat",
@@ -210,6 +211,11 @@ export default {
       // 设置 html 样式
       document.documentElement.style.height = '100vh';
       document.documentElement.style.overflow = 'hidden';
+
+      // 检查是否有未完成的流式消息
+      checkIncompleteStreaming((messageIndex) => {
+        chatStore.setMessageComplete(messageIndex);
+      });
 
       scrollToBottom();
       // 添加滚动事件监听

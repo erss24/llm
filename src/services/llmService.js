@@ -78,3 +78,21 @@ export async function createChatCompletion(messages, onUpdate) {
     throw error;
   }
 }
+
+/**
+ * 检查并处理未完成的流式消息
+ * 在页面加载时调用此函数，检查是否有未完成的流式消息
+ * @param {Function} completeCallback - 完成回调函数，用于标记消息为已完成
+ */
+export function checkIncompleteStreaming(completeCallback) {
+  // 检查是否有未完成的流式消息
+  const isStreaming = localStorage.getItem('isStreaming') === 'true';
+  const lastStreamingMessageIndex = parseInt(localStorage.getItem('lastStreamingMessageIndex'));
+  
+  // 如果有未完成的流式消息，则标记为已完成
+  console.log(lastStreamingMessageIndex, isStreaming, JSON.parse(localStorage.getItem('chat')));
+  if (isStreaming && lastStreamingMessageIndex >= 0) {
+    console.log('检测到未完成的流式消息，正在标记为已完成...');
+    completeCallback(lastStreamingMessageIndex);
+  }
+}

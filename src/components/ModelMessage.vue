@@ -62,7 +62,10 @@ export default {
   },
   computed: {
     renderedContent() {
-      return this.content ? marked(this.content) : '';
+      if (!this.content || this.content.trim() === '') {
+        return '<div class="error-message">数据错误，请重新生成</div>';
+      }
+      return marked(this.content);
     }
   },
   mounted() {
