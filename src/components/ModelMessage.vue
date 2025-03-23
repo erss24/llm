@@ -1,5 +1,14 @@
 <template>
   <div class="model-message">
+    <!-- 思考过程区域 -->
+    <div v-if="showThinking && thinkingContent" class="thinking-content">
+      <div class="thinking-header">
+        <el-icon><Loading /></el-icon>
+        <span>思考过程</span>
+      </div>
+      <div class="thinking-text" v-html="renderedThinking"></div>
+    </div>
+    
     <div class="message-content">
       <div class="message-text" v-html="renderedContent">
       </div>
@@ -17,7 +26,7 @@
 </template>
 
 <script>
-import { CopyDocument, RefreshLeft } from '@element-plus/icons-vue';
+import { CopyDocument, RefreshLeft, Loading } from '@element-plus/icons-vue';
 import { ElTooltip, ElMessage } from 'element-plus';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
@@ -26,6 +35,8 @@ import 'highlight.js/lib/languages/xml';
 import 'highlight.js/lib/languages/javascript';
 import 'highlight.js/lib/languages/css';
 import 'highlight.js/lib/languages/typescript';
+import { useChatStore } from '../stores/chat';
+import { computed } from 'vue';
 
 // 注册Vue语言支持（通过组合HTML、JS和CSS）
 hljs.registerLanguage('vue', function(hljs) {
@@ -100,6 +111,7 @@ export default {
   components: {
     CopyDocument,
     RefreshLeft,
+    Loading,
     ElTooltip
   },
   props: {
@@ -116,12 +128,28 @@ export default {
       default: false
     }
   },
+  setup() {
+    const chatStore = useChatStore();
+    
+    // 获取思考过程内容和状态
+    const thinkingContent = computed(() => chatStore.thinkingContent);
+    const showThinking = computed(() => chatStore.isThinking);
+    
+    return {
+      thinkingContent,
+      showThinking
+    };
+  },
   computed: {
     renderedContent() {
       if ((!this.content || this.content.trim() === '') && !this.streaming) {
         return '<div class="error-message">数据错误，请重新生成</div>';
       }
       return marked(this.content);
+    },
+    renderedThinking() {
+      if (!this.thinkingContent) return '';
+      return marked(this.thinkingContent);
     }
   },
   mounted() {
@@ -140,7 +168,7 @@ export default {
   methods: {
     applyHighlight() {
       // 查找所有代码块并应用高亮
-      document.querySelectorAll('.message-text pre code').forEach((block) => {
+      document.querySelectorAll('.message-text pre code, .thinking-text pre code').forEach((block) => {
         if (!block.classList.contains('hljs-highlighted')) {
           hljs.highlightElement(block);
           // 添加标记，避免重复高亮
@@ -187,6 +215,42 @@ export default {
   margin: 10px 20px;
   align-self: flex-start;
   // background-color: pink;
+}
+
+.thinking-content {
+  background-color: #f5f7fa;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  margin-top: 24px;
+  border-left: 4px solid #409eff;
+  
+  .thinking-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    color: #409eff;
+    font-weight: bold;
+    font-size: 20px;
+    
+    .el-icon {
+      margin-right: 8px;
+      animation: spin 2s linear infinite;
+    }
+  }
+  
+  .thinking-text {
+    font-size: 20px;
+    line-height: 1.8;
+    color: #606266;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .message-content {
@@ -270,11 +334,11 @@ export default {
 }
 
 /* Markdown样式 */
-.message-text {
+.message-text, .thinking-text {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
-.message-text h1 {
+.message-text h1, .thinking-text h1 {
   font-size: 2em;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
@@ -283,7 +347,7 @@ export default {
   padding-bottom: 0.3em;
 }
 
-.message-text h2 {
+.message-text h2, .thinking-text h2 {
   font-size: 1.55em;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
@@ -292,26 +356,25 @@ export default {
   padding-bottom: 0.3em;
 }
 
-.message-text h3 {
+.message-text h3, .thinking-text h3 {
   font-size: 1.45em;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   font-weight: 600;
 }
 
-.message-text h4 {
+.message-text h4, .thinking-text h4 {
   font-size: 1.3em;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   font-weight: 600;
 }
 
-.message-text p {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
+.message-text p, .thinking-text p {
+  margin: 0;
 }
 
-.message-text pre {
+.message-text pre, .thinking-text pre {
   background-color: #f6f8fa;
   border-radius: 6px;
   padding: 16px;
@@ -321,7 +384,7 @@ export default {
   line-height: 1.45;
 }
 
-.message-text code {
+.message-text code, .thinking-text code {
   background-color: rgba(27, 31, 35, 0.05);
   border-radius: 3px;
   font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
@@ -330,46 +393,46 @@ export default {
   padding: 0.2em 0.4em;
 }
 
-.message-text pre code {
+.message-text pre code, .thinking-text pre code {
   background-color: transparent;
   padding: 0;
 }
 
-.message-text blockquote {
+.message-text blockquote, .thinking-text blockquote {
   border-left: 0.25em solid #dfe2e5;
   color: #6a737d;
   padding: 0 1em;
   margin: 0 0 16px 0;
 }
 
-.message-text ul, .message-text ol {
+.message-text ul, .message-text ol, .thinking-text ul, .thinking-text ol {
   padding-left: 2em;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
 }
 
-.message-text table {
+.message-text table, .thinking-text table {
   border-collapse: collapse;
   margin: 1em 0;
   overflow: auto;
   width: 100%;
 }
 
-.message-text table th, .message-text table td {
+.message-text table th, .message-text table td, .thinking-text table th, .thinking-text table td {
   border: 1px solid #dfe2e5;
   padding: 6px 13px;
 }
 
-.message-text table tr {
+.message-text table tr, .thinking-text table tr {
   background-color: #fff;
   border-top: 1px solid #c6cbd1;
 }
 
-.message-text table tr:nth-child(2n) {
+.message-text table tr:nth-child(2n), .thinking-text table tr:nth-child(2n) {
   background-color: #f6f8fa;
 }
 
-.message-text img {
+.message-text img, .thinking-text img {
   max-width: 100%;
   box-sizing: content-box;
 }

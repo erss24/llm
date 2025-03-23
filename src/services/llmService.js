@@ -24,9 +24,10 @@ export function abortCurrentRequest() {
  * 创建聊天完成请求
  * @param {Array} messages - 聊天消息历史
  * @param {Function} onUpdate - 流式响应更新回调
+ * @param {Function} onThinking - 思考过程更新回调（可选）
  * @returns {Promise} 完成的响应
  */
-export async function createChatCompletion(messages, onUpdate) {
+export async function createChatCompletion(messages, onUpdate, onThinking) {
   // 创建新的AbortController
   abortController = new AbortController();
   const signal = abortController.signal;
@@ -39,7 +40,7 @@ export async function createChatCompletion(messages, onUpdate) {
         'Authorization': `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
-        model: 'qwq-plus',
+        model: 'deepseek-r1',
         messages: messages.map(msg => ({
           role: msg.role,
           content: msg.content
@@ -57,6 +58,8 @@ export async function createChatCompletion(messages, onUpdate) {
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     let fullResponse = '';
+    let thinkingContent = '';
+    let isThinking = false;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -78,10 +81,30 @@ export async function createChatCompletion(messages, onUpdate) {
             const jsonStr = line.replace(/^data: /, '').trim();
             const json = JSON.parse(jsonStr);
             
-            if (json.choices && json.choices[0].delta && json.choices[0].delta.content) {
+            if (json.choices && (json.choices[0].delta && json.choices[0].delta.content || json.choices[0].delta.reasoning_content)) {
               const content = json.choices[0].delta.content;
-              fullResponse += content;
-              onUpdate(fullResponse);
+              const reasoning_content = json.choices[0].delta.reasoning_content;
+              
+              // 检测思考过程的开始和结束
+              if (reasoning_content && !isThinking) {
+                isThinking = true;
+                thinkingContent = '';
+                continue;
+              } else if (content && isThinking) {
+                isThinking = false;
+                continue;
+              }
+              
+              // 根据当前状态更新不同的内容
+              if (isThinking) {
+                thinkingContent += reasoning_content;
+                if (onThinking) {
+                  onThinking(thinkingContent);
+                }
+              } else {
+                fullResponse += content;
+                onUpdate(fullResponse);
+              }
             }
           }
         } catch (e) {

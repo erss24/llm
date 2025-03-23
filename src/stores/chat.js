@@ -6,7 +6,9 @@ export const useChatStore = defineStore('chat', {
     messages: JSON.parse(localStorage.getItem('chatMessages')) || [],
     streaming: localStorage.getItem('isStreaming') === 'true' || false,
     loading: false,     // 表示是否正在加载的状态标志
-    lastStreamingMessageIndex: parseInt(localStorage.getItem('lastStreamingMessageIndex')) || -1 // 最后一条流式消息的索引
+    lastStreamingMessageIndex: parseInt(localStorage.getItem('lastStreamingMessageIndex')) || -1, // 最后一条流式消息的索引
+    thinkingContent: localStorage.getItem('thinkingContent') || '', // 存储思考过程的内容
+    isThinking: localStorage.getItem('isThinking') === 'true' || false // 是否正在显示思考过程
   }),
   
   actions: {
@@ -60,6 +62,18 @@ export const useChatStore = defineStore('chat', {
         localStorage.setItem('chatMessages', JSON.stringify(this.messages))
       }
     },
+    
+    /**
+     * 更新思考过程内容
+     * @param {string} content - 新的思考过程内容
+     */
+    updateThinkingContent(content) {
+      this.thinkingContent = content
+      this.isThinking = true
+      localStorage.setItem('thinkingContent', content)
+      localStorage.setItem('isThinking', 'true')
+    },
+    
     
     /**
      * 标记指定索引处的助手消息为已完成（停止流式传输）
@@ -131,6 +145,9 @@ export const useChatStore = defineStore('chat', {
           messageHistory, 
           (updatedContent) => {
             this.updateModelMessage(messageIndex, updatedContent)
+          },
+          (thinkingContent) => {
+            this.updateThinkingContent(thinkingContent)
           }
         )
         
@@ -216,11 +233,15 @@ export const useChatStore = defineStore('chat', {
       this.streaming = false;
       this.loading = false;
       this.lastStreamingMessageIndex = -1;
+      this.thinkingContent = '';
+      this.isThinking = false;
       
       // 清除localStorage中的相关数据
       localStorage.removeItem('chatMessages');
       localStorage.setItem('isStreaming', 'false');
       localStorage.setItem('lastStreamingMessageIndex', '-1');
+      localStorage.setItem('thinkingContent', '');
+      localStorage.setItem('isThinking', 'false');
     },
   },
   
@@ -231,6 +252,6 @@ export const useChatStore = defineStore('chat', {
     // 使用localStorage存储
     storage: localStorage,
     // 指定需要持久化的状态
-    paths: ['messages', 'streaming', 'lastStreamingMessageIndex']
+    paths: ['messages', 'streaming', 'lastStreamingMessageIndex', 'thinkingContent', 'isThinking']
   }
 })
