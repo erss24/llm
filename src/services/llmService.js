@@ -81,7 +81,7 @@ export async function createChatCompletion(messages, onUpdate, onThinking) {
             const jsonStr = line.replace(/^data: /, '').trim();
             const json = JSON.parse(jsonStr);
             
-            if (json.choices && (json.choices[0].delta && json.choices[0].delta.content || json.choices[0].delta.reasoning_content)) {
+            if (json.choices && json.choices[0].delta && (json.choices[0].delta.content || json.choices[0].delta.reasoning_content)) {
               const content = json.choices[0].delta.content;
               const reasoning_content = json.choices[0].delta.reasoning_content;
               
@@ -101,7 +101,7 @@ export async function createChatCompletion(messages, onUpdate, onThinking) {
                 if (onThinking) {
                   onThinking(thinkingContent);
                 }
-              } else {
+              } else if (content) {
                 fullResponse += content;
                 onUpdate(fullResponse);
               }

@@ -53,6 +53,8 @@
         <p>历史聊天记录区域</p>
       </div>
     </el-drawer>
+
+
     <div class="chat-user" ref="chatUserRef">
       <div class="chat-history" ref="chatHistoryRef">
         <!-- 当有消息时显示聊天内容 -->
@@ -66,6 +68,7 @@
             <ModelMessage
               v-else
               :content="message.content"
+              :thinkingContent="message.thinkingContent"
               :streaming="message.streaming"
               :is-last-message="chatStore.isLastModelMessage(index)"
               @regenerate="handleRegenerateMessage"
@@ -305,6 +308,9 @@ export default {
         () =>
           chatStore.messages.length > 0
             ? chatStore.messages[chatStore.messages.length - 1].content
+            : "",
+        () => chatStore.messages.length > 0
+            ? chatStore.messages[chatStore.messages.length - 1].thinkingContent
             : "",
       ],
       () => {

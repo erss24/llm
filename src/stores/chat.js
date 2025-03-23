@@ -7,8 +7,6 @@ export const useChatStore = defineStore('chat', {
     streaming: localStorage.getItem('isStreaming') === 'true' || false,
     loading: false,     // 表示是否正在加载的状态标志
     lastStreamingMessageIndex: parseInt(localStorage.getItem('lastStreamingMessageIndex')) || -1, // 最后一条流式消息的索引
-    thinkingContent: localStorage.getItem('thinkingContent') || '', // 存储思考过程的内容
-    isThinking: localStorage.getItem('isThinking') === 'true' || false // 是否正在显示思考过程
   }),
   
   actions: {
@@ -18,7 +16,7 @@ export const useChatStore = defineStore('chat', {
      */
     addUserMessage(content) {
       this.messages.push({
-        role: 'user',                      // 消息角色，这里是用户
+        role: 'user',                 // 消息角色，这里是用户                      
         content,                           // 消息内容
         timestamp: new Date().toISOString() // 消息时间戳，采用 ISO 格式
       })
@@ -29,10 +27,11 @@ export const useChatStore = defineStore('chat', {
      * @param {string} content - 助手发送的消息内容
      * @returns {number} 新添加消息的索引
      */
-    addModelMessage(content) {
+    addModelMessage(content, thinkingContent) {
       // 添加助手消息，并设置 streaming 标志为 true 表示消息正在流式传输
       this.messages.push({
         role: 'assistant',                 // 消息角色，这里是助手
+        thinkingContent,                   // 思考过程内容
         content,                           // 消息内容
         timestamp: new Date().toISOString(), // 消息时间戳
         streaming: true                    // 标记消息是否正在流式传输
@@ -67,11 +66,10 @@ export const useChatStore = defineStore('chat', {
      * 更新思考过程内容
      * @param {string} content - 新的思考过程内容
      */
-    updateThinkingContent(content) {
-      this.thinkingContent = content
-      this.isThinking = true
-      localStorage.setItem('thinkingContent', content)
-      localStorage.setItem('isThinking', 'true')
+    updateThinkingContent(index, thinkingContent) {
+      this.messages[index].thinkingContent = thinkingContent // 更新思考消息内容
+      // 每次更新时保存到localStorage
+      localStorage.setItem('chatMessages', JSON.stringify(this.messages))
     },
     
     
@@ -147,7 +145,7 @@ export const useChatStore = defineStore('chat', {
             this.updateModelMessage(messageIndex, updatedContent)
           },
           (thinkingContent) => {
-            this.updateThinkingContent(thinkingContent)
+            this.updateThinkingContent(messageIndex, thinkingContent)
           }
         )
         
@@ -234,14 +232,11 @@ export const useChatStore = defineStore('chat', {
       this.loading = false;
       this.lastStreamingMessageIndex = -1;
       this.thinkingContent = '';
-      this.isThinking = false;
       
       // 清除localStorage中的相关数据
       localStorage.removeItem('chatMessages');
       localStorage.setItem('isStreaming', 'false');
       localStorage.setItem('lastStreamingMessageIndex', '-1');
-      localStorage.setItem('thinkingContent', '');
-      localStorage.setItem('isThinking', 'false');
     },
   },
   
@@ -252,6 +247,6 @@ export const useChatStore = defineStore('chat', {
     // 使用localStorage存储
     storage: localStorage,
     // 指定需要持久化的状态
-    paths: ['messages', 'streaming', 'lastStreamingMessageIndex', 'thinkingContent', 'isThinking']
+    paths: ['messages', 'streaming', 'lastStreamingMessageIndex']
   }
 })

@@ -1,7 +1,7 @@
 <template>
   <div class="model-message">
     <!-- 思考过程区域 -->
-    <div v-if="showThinking && thinkingContent" class="thinking-content">
+    <div v-if="thinkingContent" class="thinking-content">
       <div class="thinking-header">
         <el-icon><Loading /></el-icon>
         <span>思考过程</span>
@@ -119,6 +119,10 @@ export default {
       type: String,
       default: ''
     },
+    thinkingContent: {
+      type: String,
+      default: ''
+    },
     streaming: {
       type: Boolean,
       default: false
@@ -127,18 +131,6 @@ export default {
       type: Boolean,
       default: false
     }
-  },
-  setup() {
-    const chatStore = useChatStore();
-    
-    // 获取思考过程内容和状态
-    const thinkingContent = computed(() => chatStore.thinkingContent);
-    const showThinking = computed(() => chatStore.isThinking);
-    
-    return {
-      thinkingContent,
-      showThinking
-    };
   },
   computed: {
     renderedContent() {
