@@ -1,9 +1,31 @@
 <template>
   <div class="chat-container" :style="chatContainerStyle">
     <!-- 添加左上角菜单按钮 -->
-    <el-button class="menu-button" type="primary" circle @click="toggleDrawer">
+    <el-button class="menu-button" 
+    v-if="!isTemporaryChat"
+    type="primary" circle 
+    @click="toggleDrawer">
       <el-icon><Menu /></el-icon>
     </el-button>
+    
+    <!-- 添加清空历史记录按钮 -->
+    <el-tooltip
+      content="<p>清空历史记录<br>开启新对话</p>"
+      raw-content
+      placement="right"
+      effect="light"
+      :enterable="false"
+    >
+      <el-button 
+        class="clear-history-button" 
+        type="danger" 
+        circle 
+        @click="handleClearHistory"
+        v-if="chatStore.messages.length > 0"
+      >
+        <el-icon><Delete /></el-icon>
+      </el-button>
+    </el-tooltip>
 
     <!-- 添加左侧抽屉 -->
     <el-drawer
@@ -112,7 +134,7 @@ import { useChatStore } from "../stores/chat";
 import UserMessage from "../components/UserMessage.vue";
 import ModelMessage from "../components/ModelMessage.vue";
 import InputBox from "../components/InputBox.vue";
-import { Bottom, Menu, QuestionFilled, Document, Lightning, Connection } from "@element-plus/icons-vue";
+import { Bottom, Menu, QuestionFilled, Document, Lightning, Connection, Delete } from "@element-plus/icons-vue";
 import { ElNotification } from "element-plus"; // 确保导入ElNotification
 import { checkIncompleteStreaming } from "../services/llmService";
 
@@ -128,6 +150,7 @@ export default {
     Document,
     Lightning,
     Connection,
+    Delete,
   },
   setup() {
     const chatStore = useChatStore();
@@ -136,6 +159,8 @@ export default {
     const showScrollButton = ref(false);
     const drawerVisible = ref(false); // 控制抽屉显示状态
     const chatUserRef = ref(null);
+    //是否开启临时对话
+    const isTemporaryChat = ref(true);
     const inputBoxStyle = ref({
       position: "fixed",
       bottom: "0",
@@ -334,12 +359,22 @@ export default {
       smoothScrollToBottom();
     };
 
+    // 处理清空历史记录
+    const handleClearHistory = () => {
+      // 调用store中的clearChatHistory方法
+      chatStore.clearChatHistory();
+      // 滚动到底部
+      scrollToBottom();
+    };
+
     return {
       chatStore,
       chatHistoryRef,
+      isTemporaryChat,
       handleSendMessage,
       handleRegenerateMessage,
       handleStopGeneration,
+      handleClearHistory,
       scrollToBottom,
       smoothScrollToBottom,
       showScrollButton,
@@ -383,6 +418,22 @@ export default {
   transition: all 0.3s ease;
   left: v-bind('drawerVisible ? "260px" : "20px"');
   transform: v-bind('drawerVisible ? "translateX(0)" : "translateX(0)"');
+}
+
+/* 清空历史记录按钮样式 */
+.clear-history-button {
+  position: fixed;
+  top: 80px;
+  left: 20px;
+  z-index: 3001;
+  width: 45px;
+  height: 45px;
+  font-size: 20px;
+  background-color: #f56c6c;
+  color: white;
+  border: none;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
 :deep(.el-drawer__header) {

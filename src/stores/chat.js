@@ -198,6 +198,30 @@ export const useChatStore = defineStore('chat', {
       
       return this.messages[index].role === 'assistant' // 确认当前消息是助手消息
     },
+
+    /**
+     * 清空聊天历史记录
+     * 当用户点击清空按钮时调用此函数
+     */
+    clearChatHistory() {
+      // 如果正在生成消息，先停止生成
+      if (this.streaming) {
+        this.stopGeneration();
+      }
+      
+      // 清空消息数组
+      this.messages = [];
+      
+      // 重置状态
+      this.streaming = false;
+      this.loading = false;
+      this.lastStreamingMessageIndex = -1;
+      
+      // 清除localStorage中的相关数据
+      localStorage.removeItem('chatMessages');
+      localStorage.setItem('isStreaming', 'false');
+      localStorage.setItem('lastStreamingMessageIndex', '-1');
+    },
   },
   
   // 添加持久化配置
