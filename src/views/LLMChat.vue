@@ -291,7 +291,10 @@ export default {
       if (!chatHistoryRef.value) return;
       const { scrollTop, scrollHeight, clientHeight } = chatUserRef.value;
       // 如果用户向上滚动超过100px，标记为已滚动
-      if (scrollHeight - scrollTop - clientHeight > 100) {
+      
+      
+      if (scrollHeight - scrollTop - clientHeight > 30) {
+        // console.log(scrollHeight - scrollTop - clientHeight);
         userHasScrolled.value = true;
         showScrollButton.value = true;
       } else {

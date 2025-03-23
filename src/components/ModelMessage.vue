@@ -3,7 +3,7 @@
     <!-- 思考过程区域 -->
     <div v-if="thinkingContent" class="thinking-content">
       <div class="thinking-header">
-        <el-icon class="loading"><Loading /></el-icon>
+        <el-icon class="loading" v-if="!content"><Loading /></el-icon>
         <span>思考过程 </span>
         <el-icon v-if="showArrow" class="arrow" @click="toggleArrow"><ArrowDown /></el-icon>
         <el-icon v-else class="arrow" @click="toggleArrow"><ArrowRight /></el-icon>
@@ -222,9 +222,8 @@ export default {
 }
 
 .thinking-content {
-  background-color: #f5f7fa;
+  background-color: rgba(144, 147, 153, 0.05);
   border-radius: 8px;
-  padding: 15px;
   margin-bottom: 15px;
   margin-top: 24px;
   border-left: 4px solid rgba(144, 147, 153, 0.8);
@@ -232,11 +231,12 @@ export default {
   .thinking-header {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
     color: black;
     font-weight: bold;
     font-size: 20px;
-    
+    background-color: rgba(144, 147, 153, 0.1);
+    line-height: 2.5em;
+    padding-left: 10px;
     .loading {
       margin-right: 8px;
       animation: spin 2s linear infinite;
@@ -244,11 +244,14 @@ export default {
     .arrow {
       font-size: 24px;
       margin-left: 18px;
+      cursor: pointer;
     }
   }
   
   .thinking-text {
+    margin-top: 20px;
     font-size: 20px;
+    margin-left: 28px;
     line-height: 1.8;
     color: #606266;
     white-space: pre-wrap;
@@ -266,8 +269,6 @@ export default {
   font-size: 25px;
   line-height: 2.2;
   .message-text {
-    margin-top: 23px;
-    // white-space: pre-wrap;
     word-break: break-word;
     margin-bottom: 0;
   }
