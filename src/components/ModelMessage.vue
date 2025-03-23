@@ -3,10 +3,12 @@
     <!-- 思考过程区域 -->
     <div v-if="thinkingContent" class="thinking-content">
       <div class="thinking-header">
-        <el-icon><Loading /></el-icon>
-        <span>思考过程</span>
+        <el-icon class="loading"><Loading /></el-icon>
+        <span>思考过程 </span>
+        <el-icon v-if="showArrow" class="arrow" @click="toggleArrow"><ArrowDown /></el-icon>
+        <el-icon v-else class="arrow" @click="toggleArrow"><ArrowRight /></el-icon>
       </div>
-      <div class="thinking-text" v-html="renderedThinking"></div>
+      <div v-if="showArrow" class="thinking-text" v-html="renderedThinking"></div>
     </div>
     
     <div class="message-content">
@@ -26,17 +28,16 @@
 </template>
 
 <script>
-import { CopyDocument, RefreshLeft, Loading } from '@element-plus/icons-vue';
+import { CopyDocument, RefreshLeft, Loading, ArrowDown, ArrowRight } from '@element-plus/icons-vue';
 import { ElTooltip, ElMessage } from 'element-plus';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
+import { ref } from 'vue';
 import 'highlight.js/styles/github.css';
 import 'highlight.js/lib/languages/xml';
 import 'highlight.js/lib/languages/javascript';
 import 'highlight.js/lib/languages/css';
 import 'highlight.js/lib/languages/typescript';
-import { useChatStore } from '../stores/chat';
-import { computed } from 'vue';
 
 // 注册Vue语言支持（通过组合HTML、JS和CSS）
 hljs.registerLanguage('vue', function(hljs) {
@@ -112,7 +113,9 @@ export default {
     CopyDocument,
     RefreshLeft,
     Loading,
-    ElTooltip
+    ElTooltip,
+    ArrowDown,
+    ArrowRight
   },
   props: {
     content: {
@@ -157,6 +160,12 @@ export default {
       });
     }
   },
+  setup() {
+    const showArrow = ref(true);
+    return {
+      showArrow
+    };
+  },
   methods: {
     applyHighlight() {
       // 查找所有代码块并应用高亮
@@ -192,7 +201,10 @@ export default {
     },
     regenerateContent() {
       this.$emit('regenerate');
-    }
+    },
+    toggleArrow() {
+      this.showArrow = !this.showArrow;
+    },
   }
 };
 </script>
@@ -215,19 +227,23 @@ export default {
   padding: 15px;
   margin-bottom: 15px;
   margin-top: 24px;
-  border-left: 4px solid #409eff;
+  border-left: 4px solid rgba(144, 147, 153, 0.8);
   
   .thinking-header {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
-    color: #409eff;
+    color: black;
     font-weight: bold;
     font-size: 20px;
     
-    .el-icon {
+    .loading {
       margin-right: 8px;
       animation: spin 2s linear infinite;
+    }
+    .arrow {
+      font-size: 24px;
+      margin-left: 18px;
     }
   }
   
