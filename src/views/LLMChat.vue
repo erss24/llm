@@ -1,29 +1,32 @@
 <template>
   <div class="chat-container" :style="chatContainerStyle">
     <!-- 添加左上角菜单按钮 -->
-    <el-button class="menu-button" 
-    v-if="!isTemporaryChat"
-    type="primary" circle 
-    @click="toggleDrawer">
+    <el-button
+      class="menu-button"
+      v-if="!isTemporaryChat"
+      type="primary"
+      circle
+      @click="toggleDrawer"
+    >
       <el-icon><Menu /></el-icon>
     </el-button>
-    
+
     <!-- 添加清空历史记录按钮 -->
     <el-tooltip
-      content="<p>清空历史记录<br>开启新对话</p>"
-      raw-content
-      placement="right"
-      effect="light"
-      :enterable="false"
+      :disabled="!hasMessages"
+      content="清空历史记录"
+      placement="bottom"
+      effect="dark"
+      v-if="hasMessages"
+      popper-class="custom-tooltip"
     >
-      <el-button 
-        class="clear-history-button" 
-        type="danger" 
-        circle 
+      <el-button
+        class="clear-history-button"
+        type="primary"
         @click="handleClearHistory"
-        v-if="chatStore.messages.length > 0"
       >
-        <el-icon><Delete /></el-icon>
+        <el-icon><ChatDotRound /></el-icon>
+        <span> 开启新对话</span>
       </el-button>
     </el-tooltip>
 
@@ -69,7 +72,7 @@
             />
           </div>
         </div>
-        
+
         <!-- 当没有消息时显示初始页面 -->
         <div v-else class="welcome-container">
           <div class="welcome-content">
@@ -77,25 +80,51 @@
               <h1>欢迎使用 AI 聊天助手</h1>
               <p class="welcome-subtitle">有问题，尽管问！我随时为您提供帮助</p>
             </div>
-            
+
             <div class="welcome-examples">
               <h2>您可以这样问我：</h2>
               <div class="example-cards">
-                <div class="example-card" @click="handleEditMessage('请解释一下Vue.js的响应式原理')">
-                  <div class="example-icon"><el-icon><QuestionFilled /></el-icon></div>
+                <div
+                  class="example-card"
+                  @click="handleEditMessage('请解释一下Vue.js的响应式原理')"
+                >
+                  <div class="example-icon">
+                    <el-icon><QuestionFilled /></el-icon>
+                  </div>
                   <div class="example-text">请解释一下Vue.js的响应式原理</div>
                 </div>
-                <div class="example-card" @click="handleEditMessage('帮我写一个简单的Todo List组件')">
-                  <div class="example-icon"><el-icon><Document /></el-icon></div>
+                <div
+                  class="example-card"
+                  @click="handleEditMessage('帮我写一个简单的Todo List组件')"
+                >
+                  <div class="example-icon">
+                    <el-icon><Document /></el-icon>
+                  </div>
                   <div class="example-text">帮我写一个简单的Todo List组件</div>
                 </div>
-                <div class="example-card" @click="handleEditMessage('如何优化Vue应用的性能？')">
-                  <div class="example-icon"><el-icon><Lightning /></el-icon></div>
+                <div
+                  class="example-card"
+                  @click="handleEditMessage('如何优化Vue应用的性能？')"
+                >
+                  <div class="example-icon">
+                    <el-icon><Lightning /></el-icon>
+                  </div>
                   <div class="example-text">如何优化Vue应用的性能？</div>
                 </div>
-                <div class="example-card" @click="handleEditMessage('解释一下Vue3的Composition API和Options API的区别')">
-                  <div class="example-icon"><el-icon><Connection /></el-icon></div>
-                  <div class="example-text">解释一下Vue3的Composition API和Options API的区别</div>
+                <div
+                  class="example-card"
+                  @click="
+                    handleEditMessage(
+                      '解释一下Vue3的Composition API和Options API的区别'
+                    )
+                  "
+                >
+                  <div class="example-icon">
+                    <el-icon><Connection /></el-icon>
+                  </div>
+                  <div class="example-text">
+                    解释一下Vue3的Composition API和Options API的区别
+                  </div>
                 </div>
               </div>
             </div>
@@ -129,12 +158,20 @@
 </template>
 
 <script>
-import { ref, watch, onMounted, onUnmounted } from "vue";
+import { ref, watch, onMounted, onUnmounted, computed } from "vue";
 import { useChatStore } from "../stores/chat";
 import UserMessage from "../components/UserMessage.vue";
 import ModelMessage from "../components/ModelMessage.vue";
 import InputBox from "../components/InputBox.vue";
-import { Bottom, Menu, QuestionFilled, Document, Lightning, Connection, Delete } from "@element-plus/icons-vue";
+import {
+  Bottom,
+  Menu,
+  QuestionFilled,
+  Document,
+  Lightning,
+  Connection,
+  ChatDotRound,
+} from "@element-plus/icons-vue";
 import { ElNotification } from "element-plus"; // 确保导入ElNotification
 import { checkIncompleteStreaming } from "../services/llmService";
 
@@ -150,7 +187,7 @@ export default {
     Document,
     Lightning,
     Connection,
-    Delete,
+    ChatDotRound,
   },
   setup() {
     const chatStore = useChatStore();
@@ -175,6 +212,9 @@ export default {
     const drawerWidth = ref(500); // 存储抽屉宽度
     const inputBoxRef = ref(null);
     const inputBoxHeight = ref(280); // 默认高度
+    const hasMessages = computed(() => {
+      return chatStore.messages.length > 0;
+    });
     // 更新输入框位置
     const updateInputBoxPosition = () => {
       if (chatUserRef.value) {
@@ -299,10 +339,10 @@ export default {
         title: "温馨提示",
         duration: 0,
         customClass: "chat-notification", // 添加自定义类名
-        position: "top-right", // 设置位置
+        position: "top-left", // 设置位置
         offset: 670, // 设置距离顶部的偏移量
         dangerouslyUseHTMLString: true, // 允许使用HTML内容
-        message: `<div class="notification-content">当前为临时对话，如有需要请自行复制保存，以免数据丢失！</div>` // 使用HTML内容
+        message: `<div class="notification-content">当前为临时对话，如有需要请自行复制保存，以免数据丢失！</div>`, // 使用HTML内容
       });
 
       // 清理函数
@@ -387,6 +427,7 @@ export default {
       inputBoxHeight,
       handleEditMessage,
       drawerWidth,
+      hasMessages,
     };
   },
 };
@@ -423,17 +464,19 @@ export default {
 /* 清空历史记录按钮样式 */
 .clear-history-button {
   position: fixed;
-  top: 80px;
-  left: 20px;
+  top: 150px;
+  left: 120px;
   z-index: 3001;
-  width: 45px;
-  height: 45px;
-  font-size: 20px;
-  background-color: #f56c6c;
-  color: white;
+  height: 60px;
+  font-size: 30px;
+  background-color: rgba(144, 147, 153, 0.3);
+  color: black;
   border: none;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
+  span {
+    font-size: 22px;
+  }
 }
 
 :deep(.el-drawer__header) {
@@ -500,12 +543,18 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .welcome-content {
-  max-width: 900px;
+  max-width: 920px;
   width: 100%;
   background-color: white;
   border-radius: 16px;
@@ -518,7 +567,7 @@ export default {
 }
 
 .welcome-header h1 {
-  font-size: 32px;
+  font-size: 45px;
   font-weight: bold;
   color: #333;
   margin-bottom: 16px;
@@ -538,7 +587,7 @@ export default {
 }
 
 .welcome-examples h2 {
-  font-size: 22px;
+  font-size: 30px;
   color: #444;
   margin-bottom: 24px;
   font-weight: 600;
@@ -579,12 +628,12 @@ export default {
   border-radius: 50%;
   margin-right: 16px;
   color: #4a6cf7;
-  font-size: 20px;
+  font-size: 35px;
 }
 
 .example-text {
   flex: 1;
-  font-size: 16px;
+  font-size: 22px;
   color: #555;
   text-align: left;
   line-height: 1.4;
@@ -655,12 +704,12 @@ export default {
   font-size: 20px !important; /* 标题字体大小 */
   font-weight: bold !important; /* 标题加粗 */
   margin-bottom: 10px !important; /* 标题下方间距 */
-  color: #333 !important; /* 标题颜色 */
+  color: #000000 !important; /* 标题颜色 */
 }
 
 /* 内容样式 */
 .notification-content {
-  font-size: 18px !important; /* 内容字体大小 */
+  font-size: 21px !important; /* 内容字体大小 */
   line-height: 1.5 !important; /* 行高 */
   color: #666 !important; /* 内容颜色 */
 }
@@ -675,5 +724,10 @@ export default {
 .chat-notification .el-notification__closeBtn {
   font-size: 18px !important; /* 关闭按钮大小 */
   color: #999 !important; /* 关闭按钮颜色 */
+}
+
+.custom-tooltip {
+  font-size: 24px !important; /* 增大提示文字大小 */
+  padding: 10px 12px !important; /* 增加内边距使提示框更大 */
 }
 </style>
