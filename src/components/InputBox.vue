@@ -44,10 +44,12 @@
         </div>
         <div class="right">
           <div class="send-actions">
-            <el-button
+            <el-tooltip :content="!loading ? '发送' : '点击停止生成'"
+            placement="right" :effect="'light'" 
+            popper-class="custom-tooltip">
+              <el-button
               type="primary"
               class="send-btn"
-              :title="!loading ? '发送' : '点击停止生成'"
               circle
               @click="!loading ? handleSend() : handleStopSend()"
               :disabled="!canSend && !loading"
@@ -57,6 +59,8 @@
                 <el-icon v-else><CaretRight /></el-icon>
               </template>
             </el-button>
+      </el-tooltip>
+            
           </div>
         </div>
       </div>

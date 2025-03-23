@@ -278,6 +278,7 @@ export default {
     const handleStopGeneration = () => {
       // 调用store中的stopGeneration方法
       chatStore.stopGeneration();
+      smoothScrollToBottom();
     };
 
     return {
