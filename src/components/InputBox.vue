@@ -47,14 +47,14 @@
             <el-button
               type="primary"
               class="send-btn"
-              title="发送"
+              :title="!loading ? '发送' : '点击停止生成'"
               circle
-              @click="handleSend"
-              :disabled="!canSend || loading"
-              :loading="loading"
+              @click="!loading ? handleSend() : handleStopSend()"
+              :disabled="!canSend && !loading"
             >
               <template #default>
                 <el-icon v-if="!loading"><Position /></el-icon>
+                <el-icon v-else><CaretRight /></el-icon>
               </template>
             </el-button>
           </div>
@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { Position, ArrowDown } from "@element-plus/icons-vue";
+import { Position, ArrowDown, CaretRight } from "@element-plus/icons-vue";
 import { ref, computed } from "vue";
 
 export default {
@@ -74,6 +74,7 @@ export default {
   components: {
     Position,
     ArrowDown,
+    CaretRight,
   },
   props: {
     loading: {
@@ -81,7 +82,7 @@ export default {
       default: false,
     },
   },
-  emits: ["send-message", "model-change", "deep-thinking-change"],
+  emits: ["send-message", "model-change", "deep-thinking-change", "stop-generation"],
   setup(props, { emit }) {
     const inputMessage = ref("");
     const textareaRef = ref(null);
@@ -102,6 +103,12 @@ export default {
     const handleModelChange = (command) => {
       selectedModel.value = command;
       emit("model-change", command); // 可选：向父组件发送模型变更事件
+    };
+
+    // 处理停止发送按钮点击
+    const handleStopSend = () => {
+      // console.log('停止生成');
+      emit("stop-generation"); // 发送停止生成事件
     };
 
     // 处理深度思考按钮点击
@@ -132,6 +139,7 @@ export default {
       handleModelChange,
       isDeepThinking,
       toggleDeepThinking,
+      handleStopSend,
     };
   },
   methods: {

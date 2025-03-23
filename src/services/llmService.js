@@ -6,6 +6,20 @@ import axios from 'axios';
 const API_BASE_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
 const API_KEY = import.meta.env.VITE_DASHSCOPE_API_KEY;
 
+// 创建一个全局的AbortController实例
+let abortController = null;
+
+/**
+ * 中断当前正在进行的请求
+ */
+export function abortCurrentRequest() {
+  // console.log('中断请求');
+  if (abortController) {
+    abortController.abort();
+    abortController = null;
+  }
+}
+
 /**
  * 创建聊天完成请求
  * @param {Array} messages - 聊天消息历史
@@ -13,7 +27,10 @@ const API_KEY = import.meta.env.VITE_DASHSCOPE_API_KEY;
  * @returns {Promise} 完成的响应
  */
 export async function createChatCompletion(messages, onUpdate) {
-  // console.log('API_KEY:', API_KEY);
+  // 创建新的AbortController
+  abortController = new AbortController();
+  const signal = abortController.signal;
+  
   try {
     const response = await fetch(`${API_BASE_URL}/chat/completions`, {
       method: 'POST',
@@ -28,7 +45,8 @@ export async function createChatCompletion(messages, onUpdate) {
           content: msg.content
         })),
         stream: true
-      })
+      }),
+      signal // 添加AbortController的signal
     });
 
     if (!response.ok) {
@@ -74,8 +92,16 @@ export async function createChatCompletion(messages, onUpdate) {
     
     return fullResponse;
   } catch (error) {
+    // 检查是否是因为中断导致的错误
+    if (error.name === 'AbortError') {
+      // console.log('请求已被中断');
+      return ''; // 返回空字符串表示请求被中断
+    }
     console.error('调用LLM API时出错:', error);
     throw error;
+  } finally {
+    // 清理AbortController
+    abortController = null;
   }
 }
 
@@ -90,9 +116,7 @@ export function checkIncompleteStreaming(completeCallback) {
   const lastStreamingMessageIndex = parseInt(localStorage.getItem('lastStreamingMessageIndex'));
   
   // 如果有未完成的流式消息，则标记为已完成
-  // console.log(lastStreamingMessageIndex, isStreaming, JSON.parse(localStorage.getItem('chat')));
   if (isStreaming && lastStreamingMessageIndex >= 0) {
-    // console.log('检测到未完成的流式消息，正在标记为已完成...');
     completeCallback(lastStreamingMessageIndex);
   }
 }

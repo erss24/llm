@@ -60,6 +60,7 @@
       
         <InputBox
           @send-message="handleSendMessage"
+          @stop-generation="handleStopGeneration"
           :loading="chatStore.loading"
           :style="inputBoxStyle"
           ref="inputBoxRef"
@@ -273,11 +274,18 @@ export default {
       }
     };
 
+    // 处理停止生成消息
+    const handleStopGeneration = () => {
+      // 调用store中的stopGeneration方法
+      chatStore.stopGeneration();
+    };
+
     return {
       chatStore,
       chatHistoryRef,
       handleSendMessage,
       handleRegenerateMessage,
+      handleStopGeneration,
       scrollToBottom,
       smoothScrollToBottom,
       showScrollButton,

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { createChatCompletion } from '../services/llmService'
+import { createChatCompletion, abortCurrentRequest } from '../services/llmService'
 
 export const useChatStore = defineStore('chat', {
   state: () => ({
@@ -76,6 +76,23 @@ export const useChatStore = defineStore('chat', {
         localStorage.setItem('lastStreamingMessageIndex', '-1')
         // 保存更新后的消息到localStorage
         localStorage.setItem('chatMessages', JSON.stringify(this.messages))
+      }
+    },
+    
+    /**
+     * 停止当前正在生成的消息
+     * 当用户点击停止按钮时调用此函数
+     */
+    stopGeneration() {
+      // 中断当前正在进行的API请求
+      abortCurrentRequest();
+      
+      // 检查是否有正在流式传输的消息
+      if (this.streaming && this.lastStreamingMessageIndex >= 0) {
+        // 标记当前正在流式传输的消息为已完成
+        this.setMessageComplete(this.lastStreamingMessageIndex);
+        // 设置加载状态为false
+        this.setLoading(false);
       }
     },
     
