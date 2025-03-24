@@ -89,36 +89,36 @@
               <div class="example-cards">
                 <div
                   class="example-card"
-                  @click="handleEditMessage('请解释一下Vue.js的响应式原理')"
+                  @click="handleEditMessage('简单介绍韩山师范学院')"
                 >
                   <div class="example-icon">
                     <el-icon><QuestionFilled /></el-icon>
                   </div>
-                  <div class="example-text">请解释一下Vue.js的响应式原理</div>
+                  <div class="example-text">简单介绍韩山师范学院</div>
                 </div>
                 <div
                   class="example-card"
-                  @click="handleEditMessage('帮我写一个简单的Todo List组件')"
+                  @click="handleEditMessage('潮州旅游攻略')"
                 >
                   <div class="example-icon">
                     <el-icon><Document /></el-icon>
                   </div>
-                  <div class="example-text">帮我写一个简单的Todo List组件</div>
+                  <div class="example-text">潮州旅游攻略</div>
                 </div>
                 <div
                   class="example-card"
-                  @click="handleEditMessage('如何优化Vue应用的性能？')"
+                  @click="handleEditMessage('韩师附近有什么好玩的')"
                 >
                   <div class="example-icon">
                     <el-icon><Lightning /></el-icon>
                   </div>
-                  <div class="example-text">如何优化Vue应用的性能？</div>
+                  <div class="example-text">韩师附近有什么好玩的</div>
                 </div>
                 <div
                   class="example-card"
                   @click="
                     handleEditMessage(
-                      '解释一下Vue3的Composition API和Options API的区别'
+                      '韩师美食推荐'
                     )
                   "
                 >
@@ -126,7 +126,7 @@
                     <el-icon><Connection /></el-icon>
                   </div>
                   <div class="example-text">
-                    解释一下Vue3的Composition API和Options API的区别
+                    韩师美食推荐
                   </div>
                 </div>
               </div>

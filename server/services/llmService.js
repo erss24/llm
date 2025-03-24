@@ -79,9 +79,11 @@ export async function createLLMChatCompletion(messages, onUpdate, onThinking, si
               if (reasoning_content && !isThinking) {
                 isThinking = true;
                 thinkingContent = '';
+                thinkingContent += reasoning_content;
                 continue;
               } else if (content && isThinking) {
                 isThinking = false;
+                fullResponse += content;
                 continue;
               }
               

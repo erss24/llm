@@ -77,9 +77,12 @@ export const useChatStore = defineStore('chat', {
      * 标记指定索引处的助手消息为已完成（停止流式传输）
      * @param {number} index - 要标记的消息的索引
      */
-    setMessageComplete(index) {
+    setMessageComplete(index, content='') {
       // 检查索引是否在有效范围内
       if (index >= 0 && index < this.messages.length) {
+        if(content) {
+          this.messages[index].content = content // 更新消息内容
+        }
         this.messages[index].streaming = false // 将 streaming 标志设为 false
         // 重置全局streaming状态和最后流式消息索引
         this.streaming = false
@@ -102,7 +105,7 @@ export const useChatStore = defineStore('chat', {
       // 检查是否有正在流式传输的消息
       if (this.streaming && this.lastStreamingMessageIndex >= 0) {
         // 标记当前正在流式传输的消息为已完成
-        this.setMessageComplete(this.lastStreamingMessageIndex);
+        this.setMessageComplete(this.lastStreamingMessageIndex, this.messages[this.lastStreamingMessageIndex].content+'\n\n你已中止生成。');
         // 设置加载状态为false
         this.setLoading(false);
       }
