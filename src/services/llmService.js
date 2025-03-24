@@ -1,22 +1,34 @@
 /**
- * LLM服务 - 处理与DashScope API的通信
+ * LLM服务 - 处理与后端API的通信
  */
 import axios from 'axios';
 
-const API_BASE_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
-const API_KEY = import.meta.env.VITE_DASHSCOPE_API_KEY;
+const API_BASE_URL = 'http://localhost:3000/api';
 
 // 创建一个全局的AbortController实例
 let abortController = null;
+
+// 生成唯一的会话ID
+const sessionId = 'session_' + Date.now();
 
 /**
  * 中断当前正在进行的请求
  */
 export function abortCurrentRequest() {
-  // console.log('中断请求');
   if (abortController) {
     abortController.abort();
     abortController = null;
+    
+    // 通知后端中止请求
+    fetch(`${API_BASE_URL}/abort`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sessionId })
+    }).catch(error => {
+      console.error('中止请求时出错:', error);
+    });
   }
 }
 
@@ -33,19 +45,18 @@ export async function createChatCompletion(messages, onUpdate, onThinking) {
   const signal = abortController.signal;
   
   try {
-    const response = await fetch(`${API_BASE_URL}/chat/completions`, {
+    // 发送请求到后端API
+    const response = await fetch(`${API_BASE_URL}/chat`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'deepseek-r1',
         messages: messages.map(msg => ({
           role: msg.role,
           content: msg.content
         })),
-        stream: true
+        sessionId
       }),
       signal // 添加AbortController的signal
     });
@@ -58,9 +69,7 @@ export async function createChatCompletion(messages, onUpdate, onThinking) {
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     let fullResponse = '';
-    let thinkingContent = '';
-    let isThinking = false;
-
+    
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -79,32 +88,17 @@ export async function createChatCompletion(messages, onUpdate, onThinking) {
           // 移除"data: "前缀并解析JSON
           if (line.startsWith('data: ')) {
             const jsonStr = line.replace(/^data: /, '').trim();
-            const json = JSON.parse(jsonStr);
+            const data = JSON.parse(jsonStr);
             
-            if (json.choices && json.choices[0].delta && (json.choices[0].delta.content || json.choices[0].delta.reasoning_content)) {
-              const content = json.choices[0].delta.content;
-              const reasoning_content = json.choices[0].delta.reasoning_content;
-              
-              // 检测思考过程的开始和结束
-              if (reasoning_content && !isThinking) {
-                isThinking = true;
-                thinkingContent = '';
-                continue;
-              } else if (content && isThinking) {
-                isThinking = false;
-                continue;
-              }
-              
-              // 根据当前状态更新不同的内容
-              if (isThinking) {
-                thinkingContent += reasoning_content;
-                if (onThinking) {
-                  onThinking(thinkingContent);
-                }
-              } else if (content) {
-                fullResponse += content;
-                onUpdate(fullResponse);
-              }
+            // 根据类型处理不同的内容
+            if (data.type === 'content') {
+              fullResponse = data.content;
+              onUpdate(fullResponse);
+            } else if (data.type === 'thinking' && onThinking) {
+              onThinking(data.content);
+            } else if (data.type === 'error') {
+              console.error('服务器返回错误:', data.error);
+              throw new Error(data.error);
             }
           }
         } catch (e) {
@@ -117,7 +111,6 @@ export async function createChatCompletion(messages, onUpdate, onThinking) {
   } catch (error) {
     // 检查是否是因为中断导致的错误
     if (error.name === 'AbortError') {
-      // console.log('请求已被中断');
       return ''; // 返回空字符串表示请求被中断
     }
     console.error('调用LLM API时出错:', error);
