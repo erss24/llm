@@ -37,9 +37,11 @@ export function abortCurrentRequest() {
  * @param {Array} messages - 聊天消息历史
  * @param {Function} onUpdate - 流式响应更新回调
  * @param {Function} onThinking - 思考过程更新回调（可选）
+ * @param {String} modelType - 模型类型，默认为'qwen-plus'
+ * @param {Boolean} isDeepThinking - 是否启用深度思考模式，默认为false
  * @returns {Promise} 完成的响应
  */
-export async function createChatCompletion(messages, onUpdate, onThinking) {
+export async function createChatCompletion(messages, onUpdate, onThinking, modelType = 'qwen-plus', isDeepThinking = false) {
   // 创建新的AbortController
   abortController = new AbortController();
   const signal = abortController.signal;
@@ -56,7 +58,9 @@ export async function createChatCompletion(messages, onUpdate, onThinking) {
           role: msg.role,
           content: msg.content
         })),
-        sessionId
+        sessionId,
+        modelType,      // 添加模型类型参数
+        isDeepThinking // 添加深度思考状态参数
       }),
       signal // 添加AbortController的signal
     });

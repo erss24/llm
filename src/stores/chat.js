@@ -122,9 +122,11 @@ export const useChatStore = defineStore('chat', {
     /**
      * 发送消息到LLM并处理响应
      * @param {string} userMessage - 用户发送的消息
+     * @param {string} modelType - 模型类型，默认为'qwen-plus'
+     * @param {boolean} isDeepThinking - 是否启用深度思考模式，默认为false
      * @returns {Promise<void>}
      */
-    async sendMessageToLLM(userMessage) {
+    async sendMessageToLLM(userMessage, modelType = 'qwen-plus', isDeepThinking = false) {
       // 添加用户消息
       this.addUserMessage(userMessage)
       
@@ -149,7 +151,9 @@ export const useChatStore = defineStore('chat', {
           },
           (thinkingContent) => {
             this.updateThinkingContent(messageIndex, thinkingContent)
-          }
+          },
+          modelType,      // 传递模型类型参数
+          isDeepThinking // 传递深度思考状态参数
         )
         
         // 设置消息完成状态
@@ -163,9 +167,11 @@ export const useChatStore = defineStore('chat', {
     
     /**
      * 重新生成最后一条助手消息
+     * @param {string} modelType - 模型类型，默认为'qwen-plus'
+     * @param {boolean} isDeepThinking - 是否启用深度思考模式，默认为false
      * @returns {Promise<void>}
      */
-    async regenerateLastMessage() {
+    async regenerateLastMessage(modelType = 'qwen-plus', isDeepThinking = false) {
       // 查找最后一条助手消息的索引
       let lastAssistantIndex = -1
       for (let i = this.messages.length - 1; i >= 0; i--) {
@@ -191,8 +197,8 @@ export const useChatStore = defineStore('chat', {
         // 删除最后一条助手消息
         this.messages.splice(lastAssistantIndex, 1)
         this.messages.splice(lastUserMessageIndex, 1)
-        // 重新发送用户的最后一条消息
-        await this.sendMessageToLLM(lastUserMessage)
+        // 重新发送用户的最后一条消息，并传递模型类型和深度思考状态
+        await this.sendMessageToLLM(lastUserMessage, modelType, isDeepThinking)
       }
     },
     

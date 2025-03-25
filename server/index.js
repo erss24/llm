@@ -25,7 +25,7 @@ let activeRequestControllers = new Map();
 // 路由
 app.post('/api/chat', async (req, res) => {
   try {
-    const { messages, sessionId } = req.body;
+    const { messages, sessionId, modelType, isDeepThinking } = req.body;
     
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: '无效的消息格式' });
@@ -53,20 +53,19 @@ app.post('/api/chat', async (req, res) => {
       messages,
       // 流式更新回调
       (content) => {
-        res.write(`data: ${JSON.stringify({ type: 'content', content })}
-\n`);
+        res.write(`data: ${JSON.stringify({ type: 'content', content })}\n\n`);
       },
       // 思考过程回调
       (thinkingContent) => {
-        res.write(`data: ${JSON.stringify({ type: 'thinking', content: thinkingContent })}
-\n`);
+        res.write(`data: ${JSON.stringify({ type: 'thinking', content: thinkingContent })}\n\n`);
       },
-      controller.signal
+      controller.signal,
+      modelType || 'qwen-plus', // 传递模型类型参数，默认为qwen-plus
+      isDeepThinking || false    // 传递深度思考状态参数，默认为false
     );
 
     // 发送完成信号
-    res.write(`data: [DONE]
-\n`);
+    res.write(`data: [DONE]\n\n`);
     res.end();
 
     // 请求完成后，从活跃控制器映射中移除
@@ -80,8 +79,7 @@ app.post('/api/chat', async (req, res) => {
       res.status(500).json({ error: '处理请求时出错' });
     } else {
       // 如果已经开始流式响应，则发送错误事件
-      res.write(`data: ${JSON.stringify({ type: 'error', error: error.message })}
-\n`);
+      res.write(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`);
       res.end();
     }
   }

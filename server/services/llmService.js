@@ -12,15 +12,28 @@ const API_BASE_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
  * @param {Function} onUpdate - 流式响应更新回调
  * @param {Function} onThinking - 思考过程更新回调（可选）
  * @param {AbortSignal} signal - 用于中止请求的信号
+ * @param {String} modelType - 模型类型，默认为'qwen-plus'
+ * @param {Boolean} isDeepThinking - 是否启用深度思考模式，默认为false
  * @returns {Promise} 完成的响应
  */
-export async function createLLMChatCompletion(messages, onUpdate, onThinking, signal) {
+export async function createLLMChatCompletion(messages, onUpdate, onThinking, signal, modelType = 'qwen-plus', isDeepThinking = false) {
   try {
     // 从环境变量获取API密钥
     const API_KEY = process.env.DASHSCOPE_API_KEY;
     
     if (!API_KEY) {
       throw new Error('API密钥未配置');
+    }
+    
+    // 根据模型类型和深度思考状态选择对应的模型
+    let model;
+    if (modelType === 'qwen-plus') {
+      model = isDeepThinking ? 'qwq-plus' : 'qwen-plus';
+    } else if (modelType === 'deepseek-v3') {
+      model = isDeepThinking ? 'deepseek-r1' : 'deepseek-v3';
+    } else {
+      // 默认使用通义千问
+      model = isDeepThinking ? 'qwq-plus' : 'qwen-plus';
     }
     
     const response = await fetch(`${API_BASE_URL}/chat/completions`, {
@@ -30,7 +43,7 @@ export async function createLLMChatCompletion(messages, onUpdate, onThinking, si
         'Authorization': `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
-        model: 'deepseek-r1',
+        model: model,
         messages: messages.map(msg => ({
           role: msg.role,
           content: msg.content

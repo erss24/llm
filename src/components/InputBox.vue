@@ -19,17 +19,13 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item 
-                  command="qwq-plus" 
-                  :class="{ 'active-model': selectedModel === 'qwq-plus' }" 
-                  style="font-size: 20px; line-height: 28px;">qwq-plus</el-dropdown-item>
+                  command="通义千问" 
+                  :class="{ 'active-model': selectedModel === '通义千问' }" 
+                  style="font-size: 20px; line-height: 28px;">通义千问</el-dropdown-item>
                 <el-dropdown-item 
-                  command="deepseek-r1" 
-                  :class="{ 'active-model': selectedModel === 'deepseek-r1' }" 
-                  style="font-size: 20px; line-height: 28px;">deepseek-r1</el-dropdown-item>
-                <el-dropdown-item 
-                  command="deepseek-v3" 
-                  :class="{ 'active-model': selectedModel === 'deepseek-v3' }" 
-                  style="font-size: 20px; line-height: 28px;">deepseek-v3</el-dropdown-item>
+                  command="deepseek(满血)" 
+                  :class="{ 'active-model': selectedModel === 'deepseek(满血)' }" 
+                  style="font-size: 20px; line-height: 28px;">deepseek(满血)</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -90,7 +86,7 @@ export default {
   setup(props, { emit }) {
     const inputMessage = ref("");
     const textareaRef = ref(null);
-    const selectedModel = ref("qwq-plus"); // 默认选中的模型
+    const selectedModel = ref("通义千问"); // 默认选中的模型
     const isDeepThinking = ref(false); // 添加深度思考状态
 
     const canSend = computed(() => inputMessage.value.trim().length > 0);

@@ -216,7 +216,7 @@ export default {
   padding: 0 25px;
   border-radius: 14px;
   max-width: calc(100% - 60px);
-  margin: 10px 20px;
+  margin: 25px 20px;
   align-self: flex-start;
   // background-color: pink;
 }

@@ -149,6 +149,8 @@
       <InputBox
         @send-message="handleSendMessage"
         @stop-generation="handleStopGeneration"
+        @model-change="handleModelChange"
+        @deep-thinking-change="handleDeepThinkingChange"
         :loading="chatStore.loading"
         :style="inputBoxStyle"
         ref="inputBoxRef"
@@ -304,6 +306,33 @@ export default {
       }
     };
 
+    // 添加状态变量存储当前选择的模型类型和深度思考状态
+    const selectedModelType = ref('qwen-plus'); // 默认使用通义千问
+    const isDeepThinking = ref(false); // 默认不启用深度思考
+    
+    // 处理模型选择变化
+    const handleModelChange = (modelName) => {
+      // 根据下拉菜单选择的名称映射到实际的模型类型
+      let modelType;
+      if (modelName === '通义千问') {
+        modelType = 'qwen-plus';
+      } else if (modelName === 'deepseek(满血)') {
+        modelType = 'deepseek-v3';
+      } else {
+        modelType = 'qwen-plus'; // 默认使用通义千问
+      }
+      
+      // 存储当前选择的模型类型
+      selectedModelType.value = modelType;
+      // console.log('模型已切换为:', modelType);
+    };
+    
+    // 处理深度思考状态变化
+    const handleDeepThinkingChange = (isDeep) => {
+      isDeepThinking.value = isDeep;
+      // console.log('深度思考模式:', isDeep ? '已开启' : '已关闭');
+    };
+
     // 监听消息变化，自动滚动到底部（除非用户已滚动）
     watch(
       [
@@ -363,10 +392,11 @@ export default {
     });
 
     // 处理发送消息
-    const handleSendMessage = async (message) => {
-      // 发送消息时重置用户滚动状态，确保新消息可见
-      userHasScrolled.value = false;
-      await chatStore.sendMessageToLLM(message);
+    const handleSendMessage = (message) => {
+      // 发送消息到LLM，并传递当前选择的模型类型和深度思考状态
+      chatStore.sendMessageToLLM(message, selectedModelType.value, isDeepThinking.value);
+      // 滚动到底部
+      scrollToBottom();
     };
 
     // 处理重新生成消息
@@ -374,7 +404,7 @@ export default {
       // 重置用户滚动状态，确保新消息可见
       userHasScrolled.value = false;
       // 调用store中的重新生成方法
-      await chatStore.regenerateLastMessage();
+      await chatStore.regenerateLastMessage(selectedModelType.value, isDeepThinking.value);
     };
 
     // 处理抽屉开关
@@ -437,6 +467,10 @@ export default {
       handleEditMessage,
       drawerWidth,
       hasMessages,
+      handleModelChange,
+      handleDeepThinkingChange,
+      selectedModelType,
+      isDeepThinking
     };
   },
 };
@@ -741,3 +775,5 @@ export default {
   padding: 10px 12px !important; /* 增加内边距使提示框更大 */
 }
 </style>
+
+    
