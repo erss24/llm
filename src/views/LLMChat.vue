@@ -15,7 +15,7 @@
     <el-tooltip
       :disabled="!hasMessages"
       content="清空历史记录"
-      placement="bottom"
+      placement="right"
       effect="dark"
       v-if="hasMessages"
       popper-class="custom-tooltip"
@@ -92,7 +92,7 @@
                   @click="handleEditMessage('简单介绍韩山师范学院')"
                 >
                   <div class="example-icon">
-                    <el-icon><QuestionFilled /></el-icon>
+                    <el-icon><School /></el-icon>
                   </div>
                   <div class="example-text">简单介绍韩山师范学院</div>
                 </div>
@@ -123,7 +123,7 @@
                   "
                 >
                   <div class="example-icon">
-                    <el-icon><Connection /></el-icon>
+                    <el-icon><KnifeFork /></el-icon>
                   </div>
                   <div class="example-text">
                     韩师美食推荐
@@ -171,10 +171,10 @@ import InputBox from "../components/InputBox.vue";
 import {
   Bottom,
   Menu,
-  QuestionFilled,
+  School,
   Document,
   Lightning,
-  Connection,
+  KnifeFork,
   ChatDotRound,
 } from "@element-plus/icons-vue";
 import { ElNotification } from "element-plus"; // 确保导入ElNotification
@@ -188,10 +188,10 @@ export default {
     InputBox,
     Bottom,
     Menu,
-    QuestionFilled,
+    School,
     Document,
     Lightning,
-    Connection,
+    KnifeFork,
     ChatDotRound,
   },
   setup() {
@@ -378,9 +378,18 @@ export default {
         duration: 0,
         customClass: "chat-notification", // 添加自定义类名
         position: "top-left", // 设置位置
-        offset: 670, // 设置距离顶部的偏移量
+        offset: 300, // 设置距离顶部的偏移量
         dangerouslyUseHTMLString: true, // 允许使用HTML内容
         message: `<div class="notification-content">当前为临时对话，如有需要请自行复制保存，以免数据丢失！</div>`, // 使用HTML内容
+      });
+      ElNotification({
+        title: "模型建议",
+        duration: 0,
+        customClass: "chat-notification", // 添加自定义类名
+        position: "top-left", // 设置位置
+        offset: 470, // 设置距离顶部的偏移量
+        dangerouslyUseHTMLString: true, // 允许使用HTML内容
+        message: `<div class="notification-content">建议使用通义千问模型，响应深度更快哦！</div>`, // 使用HTML内容
       });
 
       // 清理函数
@@ -614,7 +623,7 @@ export default {
   font-weight: bold;
   color: #333;
   margin-bottom: 16px;
-  background: linear-gradient(90deg, #4a6cf7, #2e7cf6);
+  background: linear-gradient(90deg, #4af7eb, #de2ef6);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
