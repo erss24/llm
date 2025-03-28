@@ -27,12 +27,12 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { CopyDocument, RefreshLeft, Loading, ArrowDown, ArrowRight } from '@element-plus/icons-vue';
 import { ElTooltip, ElMessage } from 'element-plus';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
-import { ref } from 'vue';
+import { ref, computed, nextTick, onMounted, onUpdated } from 'vue';
 import 'highlight.js/styles/github.css';
 import 'highlight.js/lib/languages/xml';
 import 'highlight.js/lib/languages/javascript';
@@ -107,106 +107,103 @@ marked.setOptions({
   langPrefix: 'language-'
 });
 
-export default {
-  name: 'ModelMessage',
-  components: {
-    CopyDocument,
-    RefreshLeft,
-    Loading,
-    ElTooltip,
-    ArrowDown,
-    ArrowRight
+// 定义props
+const props = defineProps({
+  content: {
+    type: String,
+    default: ''
   },
-  props: {
-    content: {
-      type: String,
-      default: ''
-    },
-    thinkingContent: {
-      type: String,
-      default: ''
-    },
-    streaming: {
-      type: Boolean,
-      default: false
-    },
-    isLastMessage: {
-      type: Boolean,
-      default: false
-    }
+  thinkingContent: {
+    type: String,
+    default: ''
   },
-  computed: {
-    renderedContent() {
-      if ((!this.content || this.content.trim() === '') && !this.streaming) {
-        return '<div class="error-message">数据错误，请重新生成</div>';
-      }
-      return marked(this.content);
-    },
-    renderedThinking() {
-      if (!this.thinkingContent) return '';
-      return marked(this.thinkingContent);
-    }
+  streaming: {
+    type: Boolean,
+    default: false
   },
-  mounted() {
-    this.$nextTick(() => {
-      this.applyHighlight();
-    });
-  },
-  updated() {
-    // 当内容更新且不再流式传输时，应用代码高亮
-    if (!this.streaming) {
-      this.$nextTick(() => {
-        this.applyHighlight();
-      });
-    }
-  },
-  setup() {
-    const showArrow = ref(true);
-    return {
-      showArrow
-    };
-  },
-  methods: {
-    applyHighlight() {
-      // 查找所有代码块并应用高亮
-      document.querySelectorAll('.message-text pre code, .thinking-text pre code').forEach((block) => {
-        if (!block.classList.contains('hljs-highlighted')) {
-          hljs.highlightElement(block);
-          // 添加标记，避免重复高亮
-          block.classList.add('hljs-highlighted');
-        }
-      });
-    },
-    copyContent() {
-      navigator.clipboard.writeText(this.content)
-        .then(() => {
-          ElMessage({
-            message: '复制成功',
-            type: 'success',
-            duration: 2000,
-            offset: 100,
-            customClass: 'large-message'
-          });
-        })
-        .catch(err => {
-          console.error('复制失败:', err);
-          ElMessage({
-            message: '复制失败',
-            type: 'error',
-            duration: 2000,
-            offset: 100,
-            customClass: 'large-message'
-          });
-        });
-    },
-    regenerateContent() {
-      this.$emit('regenerate');
-    },
-    toggleArrow() {
-      this.showArrow = !this.showArrow;
-    },
+  isLastMessage: {
+    type: Boolean,
+    default: false
   }
+});
+
+// 定义emit
+const emit = defineEmits(['regenerate']);
+
+// 响应式状态
+const showArrow = ref(true);
+
+// 计算属性
+const renderedContent = computed(() => {
+  if ((!props.content || props.content.trim() === '') && !props.streaming) {
+    return '<div class="error-message">数据错误，请重新生成</div>';
+  }
+  return marked(props.content);
+});
+
+const renderedThinking = computed(() => {
+  if (!props.thinkingContent) return '';
+  return marked(props.thinkingContent);
+});
+
+// 方法
+const applyHighlight = () => {
+  // 查找所有代码块并应用高亮
+  document.querySelectorAll('.message-text pre code, .thinking-text pre code').forEach((block) => {
+    if (!block.classList.contains('hljs-highlighted')) {
+      hljs.highlightElement(block);
+      // 添加标记，避免重复高亮
+      block.classList.add('hljs-highlighted');
+    }
+  });
 };
+
+const copyContent = () => {
+  navigator.clipboard.writeText(props.content)
+    .then(() => {
+      ElMessage({
+        message: '复制成功',
+        type: 'success',
+        duration: 2000,
+        offset: 100,
+        customClass: 'large-message'
+      });
+    })
+    .catch(err => {
+      console.error('复制失败:', err);
+      ElMessage({
+        message: '复制失败',
+        type: 'error',
+        duration: 2000,
+        offset: 100,
+        customClass: 'large-message'
+      });
+    });
+};
+
+const regenerateContent = () => {
+  emit('regenerate');
+};
+
+const toggleArrow = () => {
+  showArrow.value = !showArrow.value;
+};
+
+// 生命周期钩子
+onMounted(() => {
+  nextTick(() => {
+    applyHighlight();
+  });
+});
+
+onUpdated(() => {
+  // 当内容更新且不再流式传输时，应用代码高亮
+  if (!props.streaming) {
+    nextTick(() => {
+      applyHighlight();
+    });
+  }
+});
 </script>
 
 <style scoped lang="scss">

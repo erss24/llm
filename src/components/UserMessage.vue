@@ -14,53 +14,50 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { CopyDocument, EditPen } from '@element-plus/icons-vue'
 import { ElTooltip, ElMessage } from 'element-plus'
 
-export default {
-  name: 'UserMessage',
-  components: {
-    CopyDocument,
-    EditPen,
-    ElTooltip
-  },
-  props: {
-    content: {
-      type: String,
-      default: ''
-    }
-  },
-  methods: {
-    copyContent() {
-      // 复制内容到剪贴板
-      navigator.clipboard.writeText(this.content)
-        .then(() => {
-          // 复制成功后显示提示
-          ElMessage({
-            message: '复制成功',
-            type: 'success',
-            duration: 2000,
-            offset: 100, // 设置距离顶部的距离为100px
-            customClass: 'large-message' // 添加自定义类名
-          });
-        })
-        .catch(err => {
-          console.error('复制失败:', err);
-          ElMessage({
-            message: '复制失败',
-            type: 'error',
-            duration: 2000,
-            offset: 100, // 设置距离顶部的距离为100px
-            customClass: 'large-message' // 添加自定义类名
-          });
-        });
-    },
-    editContent() {
-      // 发射编辑事件，将内容传递给父组件
-      this.$emit('edit-message', this.content);
-    }
+// 定义props
+const props = defineProps({
+  content: {
+    type: String,
+    default: ''
   }
+})
+
+// 定义emit
+const emit = defineEmits(['edit-message'])
+
+// 方法
+const copyContent = () => {
+  // 复制内容到剪贴板
+  navigator.clipboard.writeText(props.content)
+    .then(() => {
+      // 复制成功后显示提示
+      ElMessage({
+        message: '复制成功',
+        type: 'success',
+        duration: 2000,
+        offset: 100, // 设置距离顶部的距离为100px
+        customClass: 'large-message' // 添加自定义类名
+      })
+    })
+    .catch(err => {
+      console.error('复制失败:', err)
+      ElMessage({
+        message: '复制失败',
+        type: 'error',
+        duration: 2000,
+        offset: 100, // 设置距离顶部的距离为100px
+        customClass: 'large-message' // 添加自定义类名
+      })
+    })
+}
+
+const editContent = () => {
+  // 发射编辑事件，将内容传递给父组件
+  emit('edit-message', props.content)
 }
 </script>
 

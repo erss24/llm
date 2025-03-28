@@ -65,104 +65,94 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { Position, ArrowDown, CaretRight } from "@element-plus/icons-vue";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 
-export default {
-  name: "InputBox",
-  components: {
-    Position,
-    ArrowDown,
-    CaretRight,
+// 定义props
+const props = defineProps({
+  loading: {
+    type: Boolean,
+    default: false,
   },
-  props: {
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  emits: ["send-message", "model-change", "deep-thinking-change", "stop-generation"],
-  setup(props, { emit }) {
-    const inputMessage = ref("");
-    const textareaRef = ref(null);
-    const selectedModel = ref("通义千问"); // 默认选中的模型
-    const isDeepThinking = ref(false); // 添加深度思考状态
+});
 
-    const canSend = computed(() => inputMessage.value.trim().length > 0);
+// 定义emit
+const emit = defineEmits(["send-message", "model-change", "deep-thinking-change", "stop-generation"]);
 
-    const handleSend = () => {
-      if (!canSend.value || props.loading) return;
+// 响应式状态
+const inputMessage = ref("");
+const textareaRef = ref(null);
+const selectedModel = ref("通义千问"); // 默认选中的模型
+const isDeepThinking = ref(false); // 添加深度思考状态
 
-      const message = inputMessage.value.trim();
-      emit("send-message", message);
-      inputMessage.value = "";
-    };
+// 计算属性
+const canSend = computed(() => inputMessage.value.trim().length > 0);
 
-    // 处理模型选择变化
-    const handleModelChange = (command) => {
-      selectedModel.value = command;
-      emit("model-change", command); // 可选：向父组件发送模型变更事件
-    };
+// 方法
+const handleSend = () => {
+  if (!canSend.value || props.loading) return;
 
-    // 处理停止发送按钮点击
-    const handleStopSend = () => {
-      // console.log('停止生成');
-      emit("stop-generation"); // 发送停止生成事件
-    };
+  const message = inputMessage.value.trim();
+  emit("send-message", message);
+  inputMessage.value = "";
+};
 
-    // 处理深度思考按钮点击
-    const toggleDeepThinking = () => {
-      isDeepThinking.value = !isDeepThinking.value;
-      emit("deep-thinking-change", isDeepThinking.value); // 可选：通知父组件状态变化
-    };
-    
-    // 处理键盘事件
-    const handleKeyDown = (e) => {
-      // 如果按下了shift键+enter，不阻止默认行为，允许换行
-      if (e.shiftKey) {
-        return;
-      }
-      
-      // 如果只按下enter键，阻止默认行为并发送消息
-      e.preventDefault();
-      handleSend();
-    };
+// 处理模型选择变化
+const handleModelChange = (command) => {
+  selectedModel.value = command;
+  emit("model-change", command); // 可选：向父组件发送模型变更事件
+};
 
-    return {
-      inputMessage,
-      textareaRef,
-      canSend,
-      handleSend,
-      handleKeyDown,
-      selectedModel,
-      handleModelChange,
-      isDeepThinking,
-      toggleDeepThinking,
-      handleStopSend,
-    };
-  },
-  methods: {
-    setInputContent(content) {
-      // 根据你的输入框实现来设置内容
-      
-      this.inputMessage = content; // 假设你的输入内容存储在 inputContent 变量中
-    },
-    focus() {
-      // 聚焦输入框
-      this.$refs.textareaRef.focus();
-      
-      // 将光标定位到文本的最后面
-      const textarea = this.$refs.textareaRef.textarea;
-      if (textarea) {
-        const length = this.inputMessage.length;
-        setTimeout(() => {
-          textarea.setSelectionRange(length, length);
-        }, 0);
-      }
-    }
+// 处理停止发送按钮点击
+const handleStopSend = () => {
+  // console.log('停止生成');
+  emit("stop-generation"); // 发送停止生成事件
+};
+
+// 处理深度思考按钮点击
+const toggleDeepThinking = () => {
+  isDeepThinking.value = !isDeepThinking.value;
+  emit("deep-thinking-change", isDeepThinking.value); // 可选：通知父组件状态变化
+};
+
+// 处理键盘事件
+const handleKeyDown = (e) => {
+  // 如果按下了shift键+enter，不阻止默认行为，允许换行
+  if (e.shiftKey) {
+    return;
   }
-}
+  
+  // 如果只按下enter键，阻止默认行为并发送消息
+  e.preventDefault();
+  handleSend();
+};
+
+// 从methods中移植的方法
+const setInputContent = (content) => {
+  // 根据你的输入框实现来设置内容
+  inputMessage.value = content;
+};
+
+const focus = () => {
+  // 聚焦输入框
+  textareaRef.value.focus();
+  
+  // 将光标定位到文本的最后面
+  const textarea = textareaRef.value.textarea;
+  if (textarea) {
+    const length = inputMessage.value.length;
+    setTimeout(() => {
+      textarea.setSelectionRange(length, length);
+    }, 0);
+  }
+};
+
+// 暴露方法给父组件使用
+defineExpose({
+  setInputContent,
+  focus
+});
 </script>
 
 <style scoped lang="scss">

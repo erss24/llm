@@ -162,7 +162,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, watch, onMounted, onUnmounted, computed } from "vue";
 import { useChatStore } from "../stores/chat";
 import UserMessage from "../components/UserMessage.vue";
@@ -180,308 +180,266 @@ import {
 import { ElNotification } from "element-plus"; // 确保导入ElNotification
 import { checkIncompleteStreaming } from "../services/llmService";
 
-export default {
-  name: "LLMChat",
-  components: {
-    UserMessage,
-    ModelMessage,
-    InputBox,
-    Bottom,
-    Menu,
-    School,
-    Document,
-    Lightning,
-    KnifeFork,
-    ChatDotRound,
-  },
-  setup() {
-    const chatStore = useChatStore();
-    const chatHistoryRef = ref(null);
-    const userHasScrolled = ref(false);
-    const showScrollButton = ref(false);
-    const drawerVisible = ref(false); // 控制抽屉显示状态
-    const chatUserRef = ref(null);
-    //是否开启临时对话
-    const isTemporaryChat = ref(true);
-    const inputBoxStyle = ref({
-      position: "fixed",
-      bottom: "0",
-      left: "0",
-      zIndex: "100",
-      // width: '1200px',
-      maxWidth: "1200px",
-    });
-    const chatContainerStyle = ref({
-      marginLeft: "0",
-    });
-    const drawerWidth = ref(500); // 存储抽屉宽度
-    const inputBoxRef = ref(null);
-    const inputBoxHeight = ref(280); // 默认高度
-    const hasMessages = computed(() => {
-      return chatStore.messages.length > 0;
-    });
-    // 更新输入框位置
-    const updateInputBoxPosition = () => {
-      if (chatUserRef.value) {
-        inputBoxStyle.value.left = drawerVisible.value
-          ? drawerWidth.value + "px"
-          : "0";
-        chatContainerStyle.value.marginLeft = drawerVisible.value
-          ? inputBoxStyle.value.left
-          : "0";
-      }
-    };
+const chatStore = useChatStore();
+const chatHistoryRef = ref(null);
+const userHasScrolled = ref(false);
+const showScrollButton = ref(false);
+const drawerVisible = ref(false); // 控制抽屉显示状态
+const chatUserRef = ref(null);
+//是否开启临时对话
+const isTemporaryChat = ref(true);
+const inputBoxStyle = ref({
+  position: "fixed",
+  bottom: "0",
+  left: "0",
+  zIndex: "100",
+  // width: '1200px',
+  maxWidth: "1200px",
+});
+const chatContainerStyle = ref({
+  marginLeft: "0",
+});
+const drawerWidth = ref(500); // 存储抽屉宽度
+const inputBoxRef = ref(null);
+const inputBoxHeight = ref(280); // 默认高度
+const hasMessages = computed(() => {
+  return chatStore.messages.length > 0;
+});
 
-    // 监听 InputBox 高度变化
-    const observeInputBoxHeight = () => {
-      if (!inputBoxRef.value) return;
-      const resizeObserver = new ResizeObserver((entries) => {
-        // 检查是否在底部
-        const isAtBottom = isScrolledToBottom();
-        for (let entry of entries) {
-          inputBoxHeight.value = entry.contentRect.height;
-          // console.log(inputBoxHeight.value);
-        }
-        // 如果之前在底部，高度变化后保持在底部
-        if (isAtBottom) {
-          scrollToBottom();
-        }
-      });
-      // smoothScrollToBottom();
-      resizeObserver.observe(inputBoxRef.value.$el);
+// 更新输入框位置
+const updateInputBoxPosition = () => {
+  if (chatUserRef.value) {
+    inputBoxStyle.value.left = drawerVisible.value
+      ? drawerWidth.value + "px"
+      : "0";
+    chatContainerStyle.value.marginLeft = drawerVisible.value
+      ? inputBoxStyle.value.left
+      : "0";
+  }
+};
 
-      return resizeObserver;
-    };
-
-    // 检查是否滚动到底部
-    const isScrolledToBottom = () => {
-      if (!chatUserRef.value) return true;
-
-      const { scrollTop, scrollHeight, clientHeight } = chatUserRef.value;
-      // 如果距离底部小于20px，认为是在底部
-      return scrollHeight - scrollTop - clientHeight < 20;
-    };
-
-    // 滚动到底部的函数
-    const scrollToBottom = () => {
-      setTimeout(() => {
-        if (chatHistoryRef.value) {
-          chatUserRef.value.scrollTop = chatUserRef.value.scrollHeight;
-          showScrollButton.value = false;
-        }
-      }, 100);
-    };
-    // 平滑滚动到底部的函数
-    const smoothScrollToBottom = () => {
-      if (chatHistoryRef.value) {
-        // 使用平滑滚动
-        chatUserRef.value.scrollTo({
-          top: chatUserRef.value.scrollHeight,
-          behavior: "smooth",
-        });
-
-        // 滚动完成后隐藏按钮
-        setTimeout(() => {
-          showScrollButton.value = false;
-          userHasScrolled.value = false;
-        }, 500); // 给滚动动画足够的时间
-      }
-    };
-
-    // 监听用户滚动事件
-    const handleScroll = () => {
-      if (!chatHistoryRef.value) return;
-      const { scrollTop, scrollHeight, clientHeight } = chatUserRef.value;
-      // 如果用户向上滚动超过100px，标记为已滚动
-      
-      
-      if (scrollHeight - scrollTop - clientHeight > 30) {
-        // console.log(scrollHeight - scrollTop - clientHeight);
-        userHasScrolled.value = true;
-        showScrollButton.value = true;
-      } else {
-        // 如果滚动到接近底部，重置标记
-        userHasScrolled.value = false;
-        showScrollButton.value = false;
-      }
-    };
-
-    // 添加状态变量存储当前选择的模型类型和深度思考状态
-    const selectedModelType = ref('qwen-plus'); // 默认使用通义千问
-    const isDeepThinking = ref(false); // 默认不启用深度思考
-    
-    // 处理模型选择变化
-    const handleModelChange = (modelName) => {
-      // 根据下拉菜单选择的名称映射到实际的模型类型
-      let modelType;
-      if (modelName === '通义千问') {
-        modelType = 'qwen-plus';
-      } else if (modelName === 'deepseek(满血)') {
-        modelType = 'deepseek-v3';
-      } else {
-        modelType = 'qwen-plus'; // 默认使用通义千问
-      }
-      
-      // 存储当前选择的模型类型
-      selectedModelType.value = modelType;
-      // console.log('模型已切换为:', modelType);
-    };
-    
-    // 处理深度思考状态变化
-    const handleDeepThinkingChange = (isDeep) => {
-      isDeepThinking.value = isDeep;
-      // console.log('深度思考模式:', isDeep ? '已开启' : '已关闭');
-    };
-
-    // 监听消息变化，自动滚动到底部（除非用户已滚动）
-    watch(
-      [
-        () => chatStore.messages.length,
-        () =>
-          chatStore.messages.length > 0
-            ? chatStore.messages[chatStore.messages.length - 1].content
-            : "",
-        () => chatStore.messages.length > 0
-            ? chatStore.messages[chatStore.messages.length - 1].thinkingContent
-            : "",
-      ],
-      () => {
-        if (!userHasScrolled.value) {
-          scrollToBottom();
-        }
-      }
-    );
-
-    // 组件挂载时滚动到底部
-    onMounted(() => {
-      // 设置 html 样式
-      document.documentElement.style.height = "100vh";
-      document.documentElement.style.overflow = "hidden";
-
-      // 检查是否有未完成的流式消息
-      checkIncompleteStreaming((messageIndex) => {
-        chatStore.setMessageComplete(messageIndex);
-      });
-
+// 监听 InputBox 高度变化
+const observeInputBoxHeight = () => {
+  if (!inputBoxRef.value) return;
+  const resizeObserver = new ResizeObserver((entries) => {
+    // 检查是否在底部
+    const isAtBottom = isScrolledToBottom();
+    for (let entry of entries) {
+      inputBoxHeight.value = entry.contentRect.height;
+      // console.log(inputBoxHeight.value);
+    }
+    // 如果之前在底部，高度变化后保持在底部
+    if (isAtBottom) {
       scrollToBottom();
-      // 添加滚动事件监听
-      if (chatHistoryRef.value) {
-        chatUserRef.value.addEventListener("scroll", handleScroll);
-      }
+    }
+  });
+  // smoothScrollToBottom();
+  resizeObserver.observe(inputBoxRef.value.$el);
 
-      // 初始化 InputBox 高度监听
-      const observer = observeInputBoxHeight();
+  return resizeObserver;
+};
 
-      // 弹出提示信息
-      ElNotification({
-        title: "温馨提示",
-        duration: 0,
-        customClass: "chat-notification", // 添加自定义类名
-        position: "top-left", // 设置位置
-        offset: 300, // 设置距离顶部的偏移量
-        dangerouslyUseHTMLString: true, // 允许使用HTML内容
-        message: `<div class="notification-content">当前为临时对话，如有需要请自行复制保存，以免数据丢失！</div>`, // 使用HTML内容
-      });
-      ElNotification({
-        title: "模型建议",
-        duration: 0,
-        customClass: "chat-notification", // 添加自定义类名
-        position: "top-left", // 设置位置
-        offset: 470, // 设置距离顶部的偏移量
-        dangerouslyUseHTMLString: true, // 允许使用HTML内容
-        message: `<div class="notification-content">建议使用通义千问模型，响应深度更快哦！</div>`, // 使用HTML内容
-      });
+// 检查是否滚动到底部
+const isScrolledToBottom = () => {
+  if (!chatUserRef.value) return true;
 
-      // 清理函数
-      onUnmounted(() => {
-        if (observer) {
-          observer.disconnect();
-        }
-      });
+  const { scrollTop, scrollHeight, clientHeight } = chatUserRef.value;
+  // 如果距离底部小于20px，认为是在底部
+  return scrollHeight - scrollTop - clientHeight < 20;
+};
+
+// 滚动到底部的函数
+const scrollToBottom = () => {
+  setTimeout(() => {
+    if (chatHistoryRef.value) {
+      chatUserRef.value.scrollTop = chatUserRef.value.scrollHeight;
+      showScrollButton.value = false;
+    }
+  }, 100);
+};
+
+// 平滑滚动到底部的函数
+const smoothScrollToBottom = () => {
+  if (chatHistoryRef.value) {
+    // 使用平滑滚动
+    chatUserRef.value.scrollTo({
+      top: chatUserRef.value.scrollHeight,
+      behavior: "smooth",
     });
 
-    // 处理发送消息
-    const handleSendMessage = (message) => {
-      // 发送消息到LLM，并传递当前选择的模型类型和深度思考状态
-      chatStore.sendMessageToLLM(message, selectedModelType.value, isDeepThinking.value);
-      // 滚动到底部
-      scrollToBottom();
-    };
-
-    // 处理重新生成消息
-    const handleRegenerateMessage = async () => {
-      // 重置用户滚动状态，确保新消息可见
+    // 滚动完成后隐藏按钮
+    setTimeout(() => {
+      showScrollButton.value = false;
       userHasScrolled.value = false;
-      // 调用store中的重新生成方法
-      await chatStore.regenerateLastMessage(selectedModelType.value, isDeepThinking.value);
-    };
+    }, 500); // 给滚动动画足够的时间
+  }
+};
 
-    // 处理抽屉开关
-    const toggleDrawer = () => {
-      drawerVisible.value = !drawerVisible.value;
-      // 等待过渡动画完成后更新输入框位置
-      updateInputBoxPosition();
-    };
+// 监听用户滚动事件
+const handleScroll = () => {
+  if (!chatHistoryRef.value) return;
+  const { scrollTop, scrollHeight, clientHeight } = chatUserRef.value;
+  // 如果用户向上滚动超过100px，标记为已滚动
+  
+  
+  if (scrollHeight - scrollTop - clientHeight > 30) {
+    // console.log(scrollHeight - scrollTop - clientHeight);
+    userHasScrolled.value = true;
+    showScrollButton.value = true;
+  } else {
+    // 如果滚动到接近底部，重置标记
+    userHasScrolled.value = false;
+    showScrollButton.value = false;
+  }
+};
 
-    // // 监听抽屉状态变化
-    // watch(drawerVisible, () => {
-    //   setTimeout(updateInputBoxPosition, 300);
-    // });
+// 添加状态变量存储当前选择的模型类型和深度思考状态
+const selectedModelType = ref('qwen-plus'); // 默认使用通义千问
+const isDeepThinking = ref(false); // 默认不启用深度思考
 
-    // 处理编辑消息
-    const handleEditMessage = (content) => {
-      // 将内容设置到输入框
-      if (inputBoxRef.value) {
-        inputBoxRef.value.setInputContent(content);
-        // 聚焦输入框
-        setTimeout(() => {
-          inputBoxRef.value.focus();
-        }, 100);
-      }
-    };
+// 处理模型选择变化
+const handleModelChange = (modelName) => {
+  // 根据下拉菜单选择的名称映射到实际的模型类型
+  let modelType;
+  if (modelName === '通义千问') {
+    modelType = 'qwen-plus';
+  } else if (modelName === 'deepseek(满血)') {
+    modelType = 'deepseek-v3';
+  } else {
+    modelType = 'qwen-plus'; // 默认使用通义千问
+  }
+  
+  // 存储当前选择的模型类型
+  selectedModelType.value = modelType;
+  // console.log('模型已切换为:', modelType);
+};
 
-    // 处理停止生成消息
-    const handleStopGeneration = () => {
-      // 调用store中的stopGeneration方法
-      chatStore.stopGeneration();
-      smoothScrollToBottom();
-    };
+// 处理深度思考状态变化
+const handleDeepThinkingChange = (isDeep) => {
+  isDeepThinking.value = isDeep;
+  // console.log('深度思考模式:', isDeep ? '已开启' : '已关闭');
+};
 
-    // 处理清空历史记录
-    const handleClearHistory = () => {
-      // 调用store中的clearChatHistory方法
-      chatStore.clearChatHistory();
-      // 滚动到底部
+// 监听消息变化，自动滚动到底部（除非用户已滚动）
+watch(
+  [
+    () => chatStore.messages.length,
+    () =>
+      chatStore.messages.length > 0
+        ? chatStore.messages[chatStore.messages.length - 1].content
+        : "",
+    () => chatStore.messages.length > 0
+        ? chatStore.messages[chatStore.messages.length - 1].thinkingContent
+        : "",
+  ],
+  () => {
+    if (!userHasScrolled.value) {
       scrollToBottom();
-    };
+    }
+  }
+);
 
-    return {
-      chatStore,
-      chatHistoryRef,
-      isTemporaryChat,
-      handleSendMessage,
-      handleRegenerateMessage,
-      handleStopGeneration,
-      handleClearHistory,
-      scrollToBottom,
-      smoothScrollToBottom,
-      showScrollButton,
-      drawerVisible,
-      chatUserRef,
-      inputBoxStyle,
-      chatContainerStyle,
-      toggleDrawer,
-      inputBoxRef,
-      inputBoxHeight,
-      handleEditMessage,
-      drawerWidth,
-      hasMessages,
-      handleModelChange,
-      handleDeepThinkingChange,
-      selectedModelType,
-      isDeepThinking
-    };
-  },
+// 组件挂载时滚动到底部
+onMounted(() => {
+  // 设置 html 样式
+  document.documentElement.style.height = "100vh";
+  document.documentElement.style.overflow = "hidden";
+
+  // 检查是否有未完成的流式消息
+  checkIncompleteStreaming((messageIndex) => {
+    chatStore.setMessageComplete(messageIndex);
+  });
+
+  scrollToBottom();
+  // 添加滚动事件监听
+  if (chatHistoryRef.value) {
+    chatUserRef.value.addEventListener("scroll", handleScroll);
+  }
+
+  // 初始化 InputBox 高度监听
+  const observer = observeInputBoxHeight();
+
+  // 弹出提示信息
+  ElNotification({
+    title: "温馨提示",
+    duration: 0,
+    customClass: "chat-notification", // 添加自定义类名
+    position: "top-left", // 设置位置
+    offset: 300, // 设置距离顶部的偏移量
+    dangerouslyUseHTMLString: true, // 允许使用HTML内容
+    message: `<div class="notification-content">当前为临时对话，如有需要请自行复制保存，以免数据丢失！</div>`, // 使用HTML内容
+  });
+  ElNotification({
+    title: "模型建议",
+    duration: 0,
+    customClass: "chat-notification", // 添加自定义类名
+    position: "top-left", // 设置位置
+    offset: 470, // 设置距离顶部的偏移量
+    dangerouslyUseHTMLString: true, // 允许使用HTML内容
+    message: `<div class="notification-content">建议使用通义千问模型，响应深度更快哦！</div>`, // 使用HTML内容
+  });
+
+  // 清理函数
+  onUnmounted(() => {
+    if (observer) {
+      observer.disconnect();
+    }
+  });
+});
+
+// 处理发送消息
+const handleSendMessage = (message) => {
+  // 发送消息到LLM，并传递当前选择的模型类型和深度思考状态
+  chatStore.sendMessageToLLM(message, selectedModelType.value, isDeepThinking.value);
+  // 滚动到底部
+  scrollToBottom();
+};
+
+// 处理重新生成消息
+const handleRegenerateMessage = async () => {
+  // 重置用户滚动状态，确保新消息可见
+  userHasScrolled.value = false;
+  // 调用store中的重新生成方法
+  await chatStore.regenerateLastMessage(selectedModelType.value, isDeepThinking.value);
+};
+
+// 处理抽屉开关
+const toggleDrawer = () => {
+  drawerVisible.value = !drawerVisible.value;
+  // 等待过渡动画完成后更新输入框位置
+  updateInputBoxPosition();
+};
+
+// // 监听抽屉状态变化
+// watch(drawerVisible, () => {
+//   setTimeout(updateInputBoxPosition, 300);
+// });
+
+// 处理编辑消息
+const handleEditMessage = (content) => {
+  // 将内容设置到输入框
+  if (inputBoxRef.value) {
+    inputBoxRef.value.setInputContent(content);
+    // 聚焦输入框
+    setTimeout(() => {
+      inputBoxRef.value.focus();
+    }, 100);
+  }
+};
+
+// 处理停止生成消息
+const handleStopGeneration = () => {
+  // 调用store中的stopGeneration方法
+  chatStore.stopGeneration();
+  smoothScrollToBottom();
+};
+
+// 处理清空历史记录
+const handleClearHistory = () => {
+  // 调用store中的clearChatHistory方法
+  chatStore.clearChatHistory();
+  // 滚动到底部
+  scrollToBottom();
 };
 </script>
 
