@@ -39,7 +39,7 @@ const copyContent = () => {
         message: '复制成功',
         type: 'success',
         duration: 2000,
-        offset: 100, // 设置距离顶部的距离为100px
+        offset: 100, // 设置距离顶部的距离为75px
         customClass: 'large-message' // 添加自定义类名
       })
     })
@@ -49,7 +49,7 @@ const copyContent = () => {
         message: '复制失败',
         type: 'error',
         duration: 2000,
-        offset: 100, // 设置距离顶部的距离为100px
+        offset: 100, // 设置距离顶部的距离为75px
         customClass: 'large-message' // 添加自定义类名
       })
     })
@@ -65,8 +65,8 @@ const editContent = () => {
 .user-message {
   display: flex;
   flex-direction: column;
-  padding: 0 20px;
-  border-radius: 14px;
+  padding: 0 15px;
+  border-radius: 10.5px;
   width: fit-content;
   max-width: 75%;
   margin-left: auto;
@@ -76,10 +76,10 @@ const editContent = () => {
 
 .message-content {
   /* margin-bottom: 15px; */
-  font-size: 25px;
+  font-size: 18.75px;
   line-height: 1.8;
   .message-text {
-    margin-top: 23px;
+    margin-top: 17.25px;
   white-space: pre-wrap;
   word-break: break-word;
   margin-bottom: 0;
@@ -88,7 +88,7 @@ const editContent = () => {
 
 .message-actions {
   display: flex;
-  gap: 5px;
+  gap: 3.75px;
   align-self: flex-end;
 }
 
@@ -96,8 +96,8 @@ const editContent = () => {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 24px;
-  padding: 8px;
+  font-size: 18px;
+  padding: 6px;
 }
 
 @media (max-width: 768px) {
@@ -110,25 +110,32 @@ const editContent = () => {
 <style>
 /* 全局样式，不使用 scoped */
 .custom-tooltip {
-  font-size: 19px !important; /* 增大提示文字大小 */
-  padding: 8px 12px !important; /* 增加内边距使提示框更大 */
+  font-size: 14.25px !important; /* 增大提示文字大小 */
+  padding: 6px 9px !important; /* 增加内边距使提示框更大 */
 }
 /* 增大消息提示的样式 */
 .large-message {
-  min-width: 180px !important;
-  padding: 12px 20px !important;
+  position: fixed!important;
+  display: flex!important;
+  justify-content: space-between!important;
+  left: 700px;
+  background-color: rgb(219, 220, 222);
+  border-radius: 10.5px!important;
+  margin: 0 auto;
+  min-width: 135px !important;
+  padding: 9px 15px !important;
 }
 
 /* 明确定位消息文本 */
 .large-message .el-message__content {
-  font-size: 24px !important;
+  font-size: 18px !important;
   /* font-weight: bold !important; */
   line-height: 1.5 !important;
 }
 
 /* 调整消息图标大小 */
 .large-message .el-message__icon {
-  font-size: 30px !important;
-  margin-right: 8px !important;
+  font-size: 22.5px !important;
+  margin-right: 6px !important;
 }
 </style>

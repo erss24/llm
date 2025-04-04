@@ -1,3 +1,4 @@
+
 <template>
   <div class="chat-container" :style="chatContainerStyle">
     <!-- 添加左上角菜单按钮 -->
@@ -71,6 +72,7 @@
               :thinkingContent="message.thinkingContent"
               :streaming="message.streaming"
               :is-last-message="chatStore.isLastModelMessage(index)"
+              :error="message.error"
               @regenerate="handleRegenerateMessage"
             />
           </div>
@@ -157,12 +159,16 @@
       />
     </div>
     <div class="input-box-container">
-      <div class="no-box" :style="{ height: inputBoxHeight + 25 + 'px' }"></div>
+      <div class="no-box" :style="{ height: inputBoxHeight + 18.75 + 'px' }"></div>
     </div>
   </div>
 </template>
 
 <script setup>
+defineOptions({
+  name: 'ModelPage'
+})
+
 import { ref, watch, onMounted, onUnmounted, computed } from "vue";
 import { useChatStore } from "../stores/chat";
 import UserMessage from "../components/UserMessage.vue";
@@ -194,7 +200,7 @@ const inputBoxStyle = ref({
   left: "0",
   zIndex: "100",
   // width: '1200px',
-  maxWidth: "1200px",
+  maxWidth: "865px",
 });
 const chatContainerStyle = ref({
   marginLeft: "0",
@@ -205,6 +211,9 @@ const inputBoxHeight = ref(280); // 默认高度
 const hasMessages = computed(() => {
   return chatStore.messages.length > 0;
 });
+
+// 存储通知实例的数组
+const notifications = ref([]);
 
 // 更新输入框位置
 const updateInputBoxPosition = () => {
@@ -280,8 +289,8 @@ const handleScroll = () => {
   if (!chatHistoryRef.value) return;
   const { scrollTop, scrollHeight, clientHeight } = chatUserRef.value;
   // 如果用户向上滚动超过100px，标记为已滚动
-  
-  
+
+
   if (scrollHeight - scrollTop - clientHeight > 30) {
     // console.log(scrollHeight - scrollTop - clientHeight);
     userHasScrolled.value = true;
@@ -308,7 +317,7 @@ const handleModelChange = (modelName) => {
   } else {
     modelType = 'qwen-plus'; // 默认使用通义千问
   }
-  
+
   // 存储当前选择的模型类型
   selectedModelType.value = modelType;
   // console.log('模型已切换为:', modelType);
@@ -360,30 +369,53 @@ onMounted(() => {
   const observer = observeInputBoxHeight();
 
   // 弹出提示信息
-  ElNotification({
-    title: "温馨提示",
-    duration: 0,
-    customClass: "chat-notification", // 添加自定义类名
-    position: "top-left", // 设置位置
-    offset: 300, // 设置距离顶部的偏移量
-    dangerouslyUseHTMLString: true, // 允许使用HTML内容
-    message: `<div class="notification-content">当前为临时对话，如有需要请自行复制保存，以免数据丢失！</div>`, // 使用HTML内容
-  });
-  ElNotification({
-    title: "模型建议",
-    duration: 0,
-    customClass: "chat-notification", // 添加自定义类名
-    position: "top-left", // 设置位置
-    offset: 470, // 设置距离顶部的偏移量
-    dangerouslyUseHTMLString: true, // 允许使用HTML内容
-    message: `<div class="notification-content">建议使用通义千问模型，响应深度更快哦！</div>`, // 使用HTML内容
-  });
+  setTimeout(() => {
+    // 创建并保存通知实例
+    const notification1 = ElNotification({
+      title: "温馨提示",
+      duration: 0,
+      customClass: "chat-notification", // 添加自定义类名
+      position: "top-left", // 设置位置
+      offset: 200, // 设置距离顶部的偏移量
+      dangerouslyUseHTMLString: true, // 允许使用HTML内容
+      message: `<div class="notification-content">当前为临时对话，如有需要请自行复制保存，以免数据丢失！</div>`, // 使用HTML内容
+    });
+
+    const notification2 = ElNotification({
+      title: "模型建议",
+      duration: 0,
+      customClass: "chat-notification", // 添加自定义类名
+      position: "top-left", // 设置位置
+      offset: 330, // 设置距离顶部的偏移量
+      dangerouslyUseHTMLString: true, // 允许使用HTML内容
+      message: `<div class="notification-content">建议使用通义千问模型，响应深度更快哦！</div>`, // 使用HTML内容
+    });
+
+    // 将通知实例添加到数组中
+    notifications.value.push(notification1, notification2);
+  }, 100);
 
   // 清理函数
   onUnmounted(() => {
+    // 修改这里：使用 closeAll 方法立即关闭所有通知，不显示动画
+    ElNotification.closeAll(true); // 传入 true 表示立即关闭，不显示动画
+
+    // 清空通知数组
+    notifications.value = [];
+
+    // 移除滚动事件监听
+    if (chatUserRef.value) {
+      chatUserRef.value.removeEventListener("scroll", handleScroll);
+    }
+
+    // 断开ResizeObserver连接
     if (observer) {
       observer.disconnect();
     }
+
+    // 恢复html样式
+    document.documentElement.style.height = "";
+    document.documentElement.style.overflow = "";
   });
 });
 
@@ -457,50 +489,50 @@ const handleClearHistory = () => {
 /* 左上角菜单按钮样式 */
 .menu-button {
   position: fixed;
-  top: 20px;
+  top: 15px;
   z-index: 3001; /* 确保按钮在抽屉上方 */
-  width: 45px;
-  height: 45px;
-  font-size: 20px;
+  width: 33.75px;
+  height: 33.75px;
+  font-size: 15px;
   background-color: #f4f4f4;
   color: #333;
   border: none;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1.5px 9px 0 rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  left: v-bind('drawerVisible ? "260px" : "20px"');
+  left: v-bind('drawerVisible ? "195px" : "15px"');
   transform: v-bind('drawerVisible ? "translateX(0)" : "translateX(0)"');
 }
 
 /* 清空历史记录按钮样式 */
 .clear-history-button {
   position: fixed;
-  top: 150px;
-  left: 120px;
+  top: 112.5px;
+  left: 90px;
   z-index: 3001;
-  height: 60px;
-  font-size: 30px;
+  height: 45px;
+  font-size: 22.5px;
   background-color: rgba(144, 147, 153, 0.3);
   color: black;
   border: none;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1.5px 9px 0 rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   span {
-    font-size: 22px;
+    font-size: 16.5px;
   }
 }
 
 :deep(.el-drawer__header) {
-  margin-bottom: 20px;
-  padding: 20px 60px 20px 20px; /* 为按钮留出空间 */
+  margin-bottom: 15px;
+  padding: 15px 45px 15px 15px; /* 为按钮留出空间 */
   border-bottom: 1px solid #eee;
-  font-size: 18px;
+  font-size: 13.5px;
   font-weight: bold;
   position: relative; /* 为按钮定位提供参考 */
 }
 
 /* 抽屉内容样式 */
 .drawer-content {
-  padding: 20px;
+  padding: 15px;
 }
 
 .chat-user {
@@ -518,21 +550,19 @@ const handleClearHistory = () => {
   .no-box {
     width: 100%;
     box-sizing: border-box;
-    // opacity: 0;
-    // background-color: pink;
   }
 }
 
 .chat-history {
-  height: calc(100vh - 277.5px);
+  height: calc(100vh - 240px);
   flex-shrink: 1;
-  padding: 25px;
+  padding: 18.75px;
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 18.75px;
   scrollbar-width: none;
   position: relative; /* 添加相对定位，作为滚动按钮的参考 */
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -547,7 +577,7 @@ const handleClearHistory = () => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 20px;
+  padding: 15px;
   text-align: center;
   animation: fadeIn 0.5s ease-in-out;
 }
@@ -555,7 +585,7 @@ const handleClearHistory = () => {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(15px);
   }
   to {
     opacity: 1;
@@ -564,23 +594,23 @@ const handleClearHistory = () => {
 }
 
 .welcome-content {
-  max-width: 920px;
+  max-width: 690px;
   width: 100%;
   background-color: white;
-  border-radius: 16px;
-  padding: 40px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
 }
 
 .welcome-header {
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .welcome-header h1 {
-  font-size: 45px;
+  font-size: 33.75px;
   font-weight: bold;
   color: #333;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   background: linear-gradient(90deg, #4af7eb, #de2ef6);
   background-clip: text;
   -webkit-background-clip: text;
@@ -588,35 +618,35 @@ const handleClearHistory = () => {
 }
 
 .welcome-subtitle {
-  font-size: 18px;
+  font-size: 13.5px;
   color: #666;
   line-height: 1.5;
 }
 
 .welcome-examples {
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
 .welcome-examples h2 {
-  font-size: 30px;
+  font-size: 22.5px;
   color: #444;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
   font-weight: 600;
 }
 
 .example-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
 }
 
 .example-card {
   display: flex;
   align-items: center;
-  padding: 16px 20px;
+  padding: 12px 15px;
   background-color: #f8f9fa;
-  border-radius: 12px;
+  border-radius: 9px;
   cursor: pointer;
   transition: all 0.3s ease;
   border: 1px solid #eee;
@@ -624,8 +654,8 @@ const handleClearHistory = () => {
 
 .example-card:hover {
   background-color: #f0f7ff;
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2.25px);
+  box-shadow: 0 4.5px 9px rgba(0, 0, 0, 0.08);
   border-color: #d0e3ff;
 }
 
@@ -633,18 +663,18 @@ const handleClearHistory = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   background-color: #e6f0ff;
   border-radius: 50%;
-  margin-right: 16px;
+  margin-right: 12px;
   color: #4a6cf7;
-  font-size: 35px;
+  font-size: 26.25px;
 }
 
 .example-text {
   flex: 1;
-  font-size: 22px;
+  font-size: 16.5px;
   color: #555;
   text-align: left;
   line-height: 1.4;
@@ -656,14 +686,14 @@ const handleClearHistory = () => {
   background-color: #f4f4f4;
   position: fixed;
   bottom: v-bind(
-    'inputBoxHeight + 60 + "px"'
+    'inputBoxHeight + 45 + "px"'
   ); /* 动态调整位置，始终位于输入框上方 */
   left: 48%;
   z-index: 3001;
-  width: 55px;
-  height: 55px;
-  font-size: 35px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  width: 41.25px;
+  height: 41.25px;
+  font-size: 26.25px;
+  box-shadow: 0 1.5px 9px 0 rgba(0, 0, 0, 0.1);
 }
 
 :deep(.el-button--primary) {
@@ -674,15 +704,15 @@ const handleClearHistory = () => {
 /* 自定义抽屉样式 */
 :deep(.chat-history-drawer) {
   background-color: #fff;
-  box-shadow: 0 8px 10px -5px rgba(0, 0, 0, 0.1),
-    0 16px 24px 2px rgba(0, 0, 0, 0.05), 0 6px 30px 5px rgba(0, 0, 0, 0.01);
+  box-shadow: 0 6px 7.5px -3.75px rgba(0, 0, 0, 0.1),
+    0 12px 18px 1.5px rgba(0, 0, 0, 0.05), 0 4.5px 22.5px 3.75px rgba(0, 0, 0, 0.01);
 }
 
 :deep(.el-drawer__header) {
-  margin-bottom: 20px;
-  padding: 20px;
+  margin-bottom: 15px;
+  padding: 15px;
   border-bottom: 1px solid #eee;
-  font-size: 18px;
+  font-size: 13.5px;
   font-weight: bold;
 }
 
@@ -693,7 +723,7 @@ const handleClearHistory = () => {
 /* 调整菜单按钮位置，使其在抽屉打开时也可见 */
 .menu-button {
   transition: left 0.3s ease;
-  left: v-bind('drawerVisible ? "310px" : "20px"');
+  left: v-bind('drawerVisible ? "232.5px" : "15px"');
 }
 
 :deep(.el-popup-parent--hidden) {
@@ -705,42 +735,73 @@ const handleClearHistory = () => {
 <style>
 /* 自定义通知框样式 */
 .chat-notification {
-  width: 350px !important; /* 设置宽度 */
-  padding: 16px !important; /* 增加内边距 */
-  border-radius: 8px !important; /* 圆角 */
+  width: 262.5px !important; /* 设置宽度 */
+  padding: 12px 12px 0 12px !important; /* 增加内边距 */
+  border-radius: 6px !important; /* 圆角 */
+  z-index: 9999 !important;
+  position: fixed !important;
+  left: 12px;
+  transition: all 0.3s ease;
+}
+
+.el-notification {
+    --el-notification-width: 247.5px;
+    --el-notification-padding: 10.5px 19.5px 10.5px 9.75px;
+    --el-notification-radius: 6px;
+    --el-notification-shadow: var(--el-box-shadow-light);
+    --el-notification-border-color: var(--el-border-color-lighter);
+    --el-notification-icon-size: 18px;
+    --el-notification-close-font-size: var(--el-message-close-size, 12px);
+    --el-notification-group-margin-left: 9.75px;
+    --el-notification-group-margin-right: 6px;
+    --el-notification-content-font-size: var(--el-font-size-base);
+    --el-notification-content-color: var(--el-text-color-regular);
+    --el-notification-title-font-size: 12px;
+    --el-notification-title-color: var(--el-text-color-primary);
+    --el-notification-close-color: var(--el-text-color-secondary);
+    --el-notification-close-hover-color: var(--el-text-color-regular);
+    background-color: var(--el-bg-color-overlay);
+    border: 1px solid var(--el-notification-border-color);
+    border-radius: var(--el-notification-radius);
+    box-shadow: var(--el-notification-shadow);
+    box-sizing: border-box;
+    display: flex;
+    overflow: hidden;
+    overflow-wrap: break-word;
+    padding: var(--el-notification-padding);
+    position: fixed;
+    transition: opacity var(--el-transition-duration), transform var(--el-transition-duration), left var(--el-transition-duration), right var(--el-transition-duration), top .4s, bottom var(--el-transition-duration);
+    width: var(--el-notification-width);
+    z-index: 9999;
 }
 
 /* 标题样式 */
 .chat-notification .el-notification__title {
-  font-size: 20px !important; /* 标题字体大小 */
+  font-size: 15px !important; /* 标题字体大小 */
   font-weight: bold !important; /* 标题加粗 */
-  margin-bottom: 10px !important; /* 标题下方间距 */
+  margin-bottom: 7.5px !important; /* 标题下方间距 */
   color: #000000 !important; /* 标题颜色 */
 }
 
 /* 内容样式 */
 .notification-content {
-  font-size: 21px !important; /* 内容字体大小 */
+  font-size: 15.75px !important; /* 内容字体大小 */
   line-height: 1.5 !important; /* 行高 */
   color: #666 !important; /* 内容颜色 */
 }
 
 /* 图标样式 */
 .chat-notification .el-notification__icon {
-  font-size: 24px !important; /* 图标大小 */
-  margin-right: 15px !important; /* 图标右侧间距 */
+  font-size: 18px !important; /* 图标大小 */
+  margin-right: 11.25px !important; /* 图标右侧间距 */
 }
 
 /* 关闭按钮样式 */
 .chat-notification .el-notification__closeBtn {
   font-size: 18px !important; /* 关闭按钮大小 */
-  color: #999 !important; /* 关闭按钮颜色 */
-}
-
-.custom-tooltip {
-  font-size: 24px !important; /* 增大提示文字大小 */
-  padding: 10px 12px !important; /* 增加内边距使提示框更大 */
+  left: 220px !important;
+  bottom: 72px !important;
 }
 </style>
 
-    
+

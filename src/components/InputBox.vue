@@ -7,7 +7,7 @@
         type="textarea"
         v-model="inputMessage"
         @keydown.enter="handleKeyDown"
-        :autosize="{ minRows: 2, maxRows: 6 }"
+        :autosize="{ minRows: 2, maxRows: 4 }"
         ref="textareaRef"
       />
       <div class="input-actions">
@@ -18,22 +18,22 @@
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item 
-                  command="通义千问" 
-                  :class="{ 'active-model': selectedModel === '通义千问' }" 
-                  style="font-size: 20px; line-height: 28px;">通义千问</el-dropdown-item>
-                <el-dropdown-item 
-                  command="deepseek(满血)" 
-                  :class="{ 'active-model': selectedModel === 'deepseek(满血)' }" 
-                  style="font-size: 20px; line-height: 28px;">deepseek(满血)</el-dropdown-item>
+                <el-dropdown-item
+                  command="通义千问"
+                  :class="{ 'active-model': selectedModel === '通义千问' }"
+                  style="font-size: 15px; line-height: 21px;">通义千问</el-dropdown-item>
+                <el-dropdown-item
+                  command="deepseek(满血)"
+                  :class="{ 'active-model': selectedModel === 'deepseek(满血)' }"
+                  style="font-size: 15px; line-height: 21px;">deepseek(满血)</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <el-button 
-                    type="info" 
-                    size="large" 
+          <el-button
+                    type="info"
+                    size="large"
                     :class="{ 'deep-thinking-active': isDeepThinking }"
-                    style="margin-left: 20px; font-size: 20px; line-height: 28px;
+                    style="margin-left: 15px; font-size: 15px; line-height: 21px;
                      background-color: rgba(144, 147, 153, 0.3); color: black; border: none;"
                     @click="toggleDeepThinking"
                   >深度思考</el-button>
@@ -41,7 +41,7 @@
         <div class="right">
           <div class="send-actions">
             <el-tooltip :content="!loading ? '发送' : '点击停止生成'"
-            placement="right" :effect="'light'" 
+            placement="right" :effect="'light'"
             popper-class="custom-tooltip">
               <el-button
               type="primary"
@@ -56,7 +56,7 @@
               </template>
             </el-button>
       </el-tooltip>
-            
+
           </div>
         </div>
       </div>
@@ -67,7 +67,7 @@
 
 <script setup>
 import { Position, ArrowDown, CaretRight } from "@element-plus/icons-vue";
-import { ref, computed, onMounted } from "vue";
+import { ref, computed} from "vue";
 
 // 定义props
 const props = defineProps({
@@ -122,7 +122,7 @@ const handleKeyDown = (e) => {
   if (e.shiftKey) {
     return;
   }
-  
+
   // 如果只按下enter键，阻止默认行为并发送消息
   e.preventDefault();
   handleSend();
@@ -137,7 +137,7 @@ const setInputContent = (content) => {
 const focus = () => {
   // 聚焦输入框
   textareaRef.value.focus();
-  
+
   // 将光标定位到文本的最后面
   const textarea = textareaRef.value.textarea;
   if (textarea) {
@@ -162,9 +162,9 @@ defineExpose({
   left: 0;
   right: 0;
   /* border-top: 1px solid #e0e0e0; */
-  padding: 10px 10px 15px;
+  padding: 7.5px 7.5px 9px;
   background-color: #ffffff;
-  max-width: 1200px;
+  max-width: 645px;
   margin: 0 auto;
   transition: all 0.3s ease;
 }
@@ -173,15 +173,15 @@ defineExpose({
   display: flex;
   flex-direction: column;
   border: 1px solid #e0e0e0;
-  border-radius: 24px;
+  border-radius: 18px;
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .input-textarea {
-  padding: 10px 0 15px;
+  padding: 7.5px 0 9px;
   font-family: inherit;
-  font-size: 23px;
+  font-size: 13.5px;
   line-height: 1.5;
 }
 
@@ -202,11 +202,11 @@ defineExpose({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  height: 50px;
+  padding: 7.5px;
+  height: 37.5px;
   /* background-color: #f5f5f5; */
   .left {
-    margin-left: 20px;
+    margin-left: 15px;
   }
 }
 
@@ -214,24 +214,24 @@ defineExpose({
   box-shadow: none;
   resize: none;
   color:#000;
-  padding: 5px 24px;
+  padding: 3.75px 18px;
 }
 
 .send-actions {
   display: flex;
-  gap: 5px;
+  gap: 3.75px;
   align-items: center;
-  margin-right: 20px;
+  margin-right: 15px;
 }
 
 .send-btn {
   background-color: #010e01;
   color: white;
   border: none;
-  width: 45px;
-  height: 45px;
+  width: 33.75px;
+  height: 33.75px;
   cursor: pointer;
-  font-size: 35px;
+  font-size: 26.25px;
   display: flex;
   flex-direction: column;
 }
@@ -250,38 +250,38 @@ defineExpose({
 }
 
 :deep(.el-loading-spinner .circular) {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
 }
 .disclaimer {
   text-align: center;
   color: #666;
-  font-size: 15px;
+  font-size: 9px;
 }
 
 @media (max-width: 768px) {
   .input-actions {
     /* flex-direction: column; */
-    gap: 10px;
+    gap: 7.5px;
     align-items: flex-start;
   }
 }
 
 .el-button {
-  height: 40px;
+  height: 30px;
 }
 
 :deep(.el-dropdown .el-button--primary) {
   background-color: #fff;
   color: black;
-  font-size: 20px;
+  font-size: 15px;
   background-color: rgba(144, 147, 153, 0.3);
   --el-button-hover-border-color: #000;
 }
 
 :deep(.el-dropdown-menu--large .el-dropdown-menu__item) {
-  font-size: 20px;
-  line-height: 28px;
+  font-size: 15px;
+  line-height: 21px;
 }
 
 :deep(.active-model) {
@@ -298,24 +298,24 @@ defineExpose({
 // 深度思考按钮激活样式
 .deep-thinking-active {
   // font-weight: bold !important;
-  border: 2px solid #000 !important;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  border: 1.5px solid #000 !important;
+  box-shadow: 0 0 3.75px rgba(0, 0, 0, 0.2);
   background-color: rgba(144, 147, 153, 0.5) !important;
 }
 
 /* 全局修改文本域的滚动条样式 */
 .el-textarea__inner::-webkit-scrollbar {
-  width: 3px; /* 滚动条宽度 */
+  width: 2.25px; /* 滚动条宽度 */
 }
 
 .el-textarea__inner::-webkit-scrollbar-track {
   background: #f1f1f1; /* 滚动条轨道背景 */
-  border-radius: 4px; /* 圆角 */
+  border-radius: 3px; /* 圆角 */
 }
 
 .el-textarea__inner::-webkit-scrollbar-thumb {
   background: #888; /* 滚动条滑块颜色 */
-  border-radius: 4px; /* 圆角 */
+  border-radius: 3px; /* 圆角 */
 }
 
 .el-textarea__inner::-webkit-scrollbar-thumb:hover {
